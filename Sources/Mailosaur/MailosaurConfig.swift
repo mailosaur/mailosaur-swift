@@ -1,6 +1,6 @@
 //
 //  MailosaurConfig.swift
-//  mailosaur-swift
+//  Mailosaur
 //
 //  Created by Mailosaur on 23.01.2023.
 //

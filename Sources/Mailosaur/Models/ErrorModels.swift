@@ -1,6 +1,6 @@
 //
 //  ErrorModels.swift
-//  mailosaur-swift
+//  Mailosaur
 //
 //  Created by Mailosaur on 27.01.2023.
 //

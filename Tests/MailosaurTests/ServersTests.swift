@@ -1,12 +1,12 @@
 //
 //  ServersTests.swift
-//  mailosaur-swiftTests
+//  MailosaurTests
 //
 //  Created by Mailosaur on 26.01.2023.
 //
 
 import XCTest
-@testable import mailosaur_swift
+@testable import Mailosaur
 
 final class ServersTests: XCTestCase {
     private static var client: MailosaurClient!

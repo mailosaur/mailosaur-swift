@@ -1,6 +1,6 @@
 //
 //  Analysis.swift
-//  mailosaur-swift
+//  Mailosaur
 //
 //  Created by Mailosaur on 19.01.2023.
 //

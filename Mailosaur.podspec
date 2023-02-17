@@ -1,5 +1,5 @@
 #
-#  Be sure to run `pod spec lint mailosaur-swift.podspec' to ensure this is a
+#  Be sure to run `pod spec lint Mailosaur.podspec' to ensure this is a
 #  valid spec and to remove all comments including this before submitting the spec.
 #
 #  To learn more about Podspec attributes see https://guides.cocoapods.org/syntax/podspec.html
@@ -7,7 +7,7 @@
 #
 
 Pod::Spec.new do |s|
-  s.name                  = 'mailosaur-swift'
+  s.name                  = 'Mailosaur'
   s.version               = '0.0.6'
   s.summary               = 'Mailosaur lets you automate email and SMS tests as part of software development and QA..'
   s.homepage              = 'https://mailosaur.com/'

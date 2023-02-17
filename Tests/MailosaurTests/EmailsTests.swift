@@ -1,12 +1,12 @@
 //
 //  EmailsTests.swift
-//  mailosaur-swiftTests
+//  MailosaurTests
 //
 //  Created by Mailosaur on 28.01.2023.
 //
 
 import XCTest
-@testable import mailosaur_swift
+@testable import Mailosaur
 
 @available(macOS 13.0, *)
 class EmailsTestsSetup {

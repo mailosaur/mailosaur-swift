@@ -53,7 +53,7 @@ platform :ios, '15.0'
 
 target 'TestApp' do
   use_frameworks!
-  pod 'mailosaur-swift'
+  pod 'Mailosaur'
 end
 ```
 
@@ -72,7 +72,7 @@ github "mailosaur/mailosaur-swift"
 and the execute the following commands:
 ```sh
 carthage update --platform ios
-cd ./Carthage/Checkouts/mailosaur-swift
+cd ./Carthage/Checkouts/Mailosaur
 swift package generate-xcodeproj
 cd ../../..
 carthage build
@@ -81,7 +81,7 @@ carthage build
 Then import the library into your code. The value for `YOUR_API_KEY` is covered in the next step ([creating an account](#creating-an-account)):
 
 ```swift
-import mailosaur_swift
+import Mailosaur
 let mailosaur = MailosaurClient(config: MailosaurConfig(apiKey: "YOUR_API_KEY"))
 ```
 
