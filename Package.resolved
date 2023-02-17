@@ -1,0 +1,77 @@
+{
+  "pins" : [
+    {
+      "identity" : "perfect-copenssl",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/PerfectlySoft/Perfect-COpenSSL.git",
+      "state" : {
+        "revision" : "ce3113e159b8c6d8565e5d8db2672b572c81aea9",
+        "version" : "4.0.2"
+      }
+    },
+    {
+      "identity" : "perfect-crypto",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/PerfectlySoft/Perfect-Crypto.git",
+      "state" : {
+        "revision" : "39ddac516788294629dfdb509fa6c9d1e1808bb1",
+        "version" : "4.0.0"
+      }
+    },
+    {
+      "identity" : "perfect-curl",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Agitek-io/Perfect-CURL.git",
+      "state" : {
+        "branch" : "bug/curl_option_error",
+        "revision" : "e249f8493400f24b4566bd0504e71b58a8a9ffeb"
+      }
+    },
+    {
+      "identity" : "perfect-libcurl",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/PerfectlySoft/Perfect-libcurl.git",
+      "state" : {
+        "revision" : "b3d7e65ef5c27c0a027cdc621f34835975301bf1",
+        "version" : "2.1.0"
+      }
+    },
+    {
+      "identity" : "perfect-mime",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/PerfectlySoft/Perfect-MIME.git",
+      "state" : {
+        "revision" : "247246122dd72a8f4d0c7becefb8d69869598bce",
+        "version" : "1.1.0"
+      }
+    },
+    {
+      "identity" : "perfect-smtp",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Agitek-io/Perfect-SMTP.git",
+      "state" : {
+        "branch" : "mailosaur-smtp-client",
+        "revision" : "6a6bcb1e05cc25a789715a0eb7e5892d71bd5dcb"
+      }
+    },
+    {
+      "identity" : "perfect-thread",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/PerfectlySoft/Perfect-Thread.git",
+      "state" : {
+        "revision" : "a50b9a33f08fce638f33ae3121613fe499cc23ec",
+        "version" : "3.0.7"
+      }
+    },
+    {
+      "identity" : "perfectlib",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/PerfectlySoft/PerfectLib.git",
+      "state" : {
+        "revision" : "859e696457fa91a9f998ad94080632f20b47fe58",
+        "version" : "4.0.1"
+      }
+    }
+  ],
+  "version" : 2
+}

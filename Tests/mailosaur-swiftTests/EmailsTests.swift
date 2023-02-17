@@ -213,7 +213,7 @@ final class EmailsTests: XCTestCase {
         guard EmailsTestsSetup.verifiedDomain.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else { return }
         
         let subject = "New message with attachment"
-        let data = try Data(contentsOf: Bundle(for: Self.self).url(forResource: "cat", withExtension: "png")!)
+        let data = try Data(contentsOf: Bundle.module.url(forResource: "cat", withExtension: "png")!)
         let attachment = MessageAttachmentOptions(contentType: "image/png",
                                                   fileName: "cat.png",
                                                   content: data.base64EncodedString())
@@ -289,7 +289,7 @@ final class EmailsTests: XCTestCase {
         let body = "<p>Reply with attachment.</p>"
         let targetEmail = EmailsTestsSetup.emails[0]
         
-        let data = try Data(contentsOf: Bundle(for: Self.self).url(forResource: "cat", withExtension: "png")!)
+        let data = try Data(contentsOf: Bundle.module.url(forResource: "cat", withExtension: "png")!)
         let attachment = MessageAttachmentOptions(contentType: "image/png",
                                                   fileName: "cat.png",
                                                   content: data.base64EncodedString())
