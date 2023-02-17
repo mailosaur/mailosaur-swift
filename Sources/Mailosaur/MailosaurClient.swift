@@ -174,7 +174,7 @@ public class MailosaurClient {
     }
     
     private static func frameworkVersion() -> String {
-        guard let bundle = Bundle(identifier: "com.mailosaur.mailosaur-swift"),
+        guard let bundle = Bundle(identifier: "com.mailosaur.Mailosaur"),
               let build = bundle.infoDictionary?["CFBundleShortVersionString"] as? String else {
             return "0.0"
         }
