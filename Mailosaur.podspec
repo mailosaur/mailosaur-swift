@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name                  = 'Mailosaur'
-  s.version               = '0.0.6'
+  s.version               = '0.0.1'
   s.summary               = 'Mailosaur lets you automate email and SMS tests as part of software development and QA..'
   s.homepage              = 'https://mailosaur.com/'
   s.license               = { type: 'MIT', file: 'LICENSE' }
