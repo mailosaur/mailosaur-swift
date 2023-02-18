@@ -43,33 +43,43 @@ If you get stuck, just contact us at support@mailosaur.com.
 
 ### Install with Swift Package Manager
 
-In Xcode, select File > Add Packages… and enter mailoosaurr-swift repository url
+To use SwiftPM, you should use Xcode 11 to open your project. Click `File` -> `Swift Packages` -> `Add Package Dependency`, enter this repo's URL (`https://github.com/mailosaur/mailosaur-swift`).
+
+Alternatively, update your Package.swift file (ensure you enter the latest version number):
+
+```
+let package = Package(
+    dependencies: [
+        .package(url: "https://github.com/mailosaur/mailosaur-swift", from: "1.0.0")
+    ],
+    // ...
+)
+```
 
 ### Install with Cocoapods
 
-Create Podfile foor your target
-```rb
-platform :ios, '15.0'
+To install Mailosaur, simply add the following line to your Podfile (ensure the version number is correct):
 
-target 'TestApp' do
-  use_frameworks!
-  pod 'Mailosaur'
-end
+```rb
+pod 'Mailosaur', '~> 1.0'
 ```
 
-Then run the ffollowiing coommand in terminal:
+Then, run the following command:
+
 ```sh
-pod install
+$ pod update
 ```
 
 ### Install with Carthage
 
 Add the following dependency to your Cartfile
+
 ```sh
 github "mailosaur/mailosaur-swift"
 ```
 
-and the execute the following commands:
+Then, run the following commands:
+
 ```sh
 carthage update --platform ios
 cd ./Carthage/Checkouts/Mailosaur
