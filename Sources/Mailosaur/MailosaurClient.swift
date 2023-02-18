@@ -107,7 +107,7 @@ public class MailosaurClient {
                 request.setValue("application/json", forHTTPHeaderField: "Accept")
                 request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             }
-            request.setValue("mailosaur-swift/\(Self.frameworkVersion())", forHTTPHeaderField: "User-Agent")
+            request.setValue("mailosaur-swift/\(MailosaurConfig.clientVersion)", forHTTPHeaderField: "User-Agent")
             request.setValue("Basic \(encodedApiKey)", forHTTPHeaderField: "Authorization")
             
             if let params = params {
@@ -171,14 +171,5 @@ public class MailosaurClient {
             debugPrint(error)
             return .failure(error)
         }
-    }
-    
-    private static func frameworkVersion() -> String {
-        guard let bundle = Bundle(identifier: "com.mailosaur.Mailosaur"),
-              let build = bundle.infoDictionary?["CFBundleShortVersionString"] as? String else {
-            return "0.1"
-        }
-        
-        return build
     }
 }
