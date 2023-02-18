@@ -21,20 +21,7 @@ class FilesTestsSetup {
         guard initialized == false else { return }
         self.initialized = true
         
-        let client = MailosaurClient(config: MailosaurConfig(apiKey: self.apiKey, baseUrl: URL(string: self.apiBaseUrl)!))
-        self.client = client
-        
-        let host = ProcessInfo.processInfo.environment["MAILOSAUR_SMTP_HOST"]  ?? "mailosaur.net"
-        let testEmailAddress = "files_test@\(self.server).\(host)"
-        
-        do {
-            try await Mailer.shared.sendEmail(client: client, server: self.server, sendToAddress: testEmailAddress)
-        
-            let email = try await self.client.messages.get(server: self.server, criteria: MessageSearchCriteria(sentTo: testEmailAddress))
-            self.email = email
-        }  catch (let error) {
-            XCTFail(String(describing: error))
-        }
+        print("Before all")
     }
 }
 

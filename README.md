@@ -25,7 +25,7 @@ This guide provides several key sections:
   - [Testing plain text content](#testing-plain-text-content)
     - [Extracting verification codes from plain text](#extracting-verification-codes-from-plain-text)
   - [Testing HTML content](#testing-html-content)
-    - [Working with HTML using JSDOM](#working-with-html-using-jsdom)
+    - [Working with HTML using SwiftSoup](#working-with-html-using-swiftsoup)
   - [Working with hyperlinks](#working-with-hyperlinks)
     - [Links in plain text (including SMS messages)](#links-in-plain-text-including-sms-messages)
   - [Working with attachments](#working-with-attachments)
@@ -218,7 +218,7 @@ Most emails also have an HTML body, as well as the plain text content. You can a
 print(message.html.body) // "<html><head ..."
 ```
 
-### Working with HTML using JSDOM
+### Working with HTML using SwiftSoup
 
 If you need to traverse the HTML content of an email. For example, finding an element via a CSS selector, you can use the [SwiftSoup](https://github.com/scinfu/SwiftSoup) library.
 
