@@ -1,4 +1,4 @@
-# [Mailosaur - Swift library](https://mailosaur.com/) &middot; [![](https://github.com/mailosaur/mailosaur-node/workflows/CI/badge.svg)](https://github.com/mailosaur/mailosaur-node/actions) 
+# [Mailosaur - Swift library](https://mailosaur.com/) &middot; [![](https://github.com/mailosaur/mailosaur-swift/workflows/CI/badge.svg)](https://github.com/mailosaur/mailosaur-swift/actions) 
 
 Mailosaur lets you automate email and SMS tests as part of software development and QA.
 
