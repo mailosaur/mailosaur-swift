@@ -8,7 +8,6 @@
 import XCTest
 @testable import Mailosaur
 
-@available(macOS 13.0, *)
 class EmailsTestsSetup {
     static var client: MailosaurClient!
     static let apiKey = ProcessInfo.processInfo.environment["MAILOSAUR_API_KEY"]!
@@ -31,7 +30,6 @@ class EmailsTestsSetup {
     }
 }
 
-@available(macOS 13.0, *)
 final class EmailsTests: XCTestCase {
     override func setUp() async throws {
         try await super.setUp()

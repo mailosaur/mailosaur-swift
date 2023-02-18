@@ -9,12 +9,11 @@ import Foundation
 import Mailosaur
 import PerfectSMTP
 
-@available(macOS 13.0, *)
 class Mailer {
     public static let shared = Mailer()
     
-    private static let sHtml: String! = try? String(contentsOf: URL(filePath: Bundle.module.path(forResource: "testEmail", ofType: "html")!))
-    private static let sText: String! = try? String(contentsOf: URL(filePath: Bundle.module.path(forResource: "testEmail", ofType: "txt")!))
+    private static let sHtml: String! = try? String(contentsOf: Bundle.module.url(forResource: "testEmail", withExtension: "html")!)
+    private static let sText: String! = try? String(contentsOf: Bundle.module.url(forResource: "testEmail", withExtension: "txt")!)
     
     private static let server = ProcessInfo.processInfo.environment["MAILOSAUR_SERVER"]!
     private static let sVerifiedDomain = ProcessInfo.processInfo.environment["MAILOSAUR_VERIFIED_DOMAIN"] ?? "\(server).mailosaur.net"
@@ -35,6 +34,7 @@ class Mailer {
         email.subject = "\(randomString) subject"
         email.text = Self.sText.replacingOccurrences(of: "REPLACED_DURING_TEST", with: randomString)
         email.html = Self.sHtml.replacingOccurrences(of: "REPLACED_DURING_TEST", with: randomString)
+
         email.attachments.append(Attachment(path: Bundle.module.path(forResource: "cat", ofType: "png")!, contentId: "ii_1435fadb31d523f6"))
         email.attachments.append(Attachment(path: Bundle.module.path(forResource: "dog", ofType: "png")!, contentId: "ii_1435fadb31d523f7"))
         
