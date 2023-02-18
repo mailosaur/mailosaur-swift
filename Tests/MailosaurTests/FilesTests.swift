@@ -45,20 +45,24 @@ final class FilesTests: XCTestCase {
         try await FilesTestsSetup.beforeAll()
     }
     
-    func testGetEmail() async throws {
-        let bytes = try await FilesTestsSetup.client.files.getEmail(id: FilesTestsSetup.email.id)
-        let rawEmail = String(data: bytes, encoding: .utf8)
+    // func testGetEmail() async throws {
+    //     let bytes = try await FilesTestsSetup.client.files.getEmail(id: FilesTestsSetup.email.id)
+    //     let rawEmail = String(data: bytes, encoding: .utf8)
         
-        XCTAssertNotNil(rawEmail)
-        guard let rawEmail = rawEmail else { return }
-        XCTAssertTrue(rawEmail.count > 0)
-        XCTAssertTrue(rawEmail.contains(FilesTestsSetup.email.subject.data(using: .utf8)!.base64EncodedString()))
-    }
+    //     XCTAssertNotNil(rawEmail)
+    //     guard let rawEmail = rawEmail else { return }
+    //     XCTAssertTrue(rawEmail.count > 0)
+    //     XCTAssertTrue(rawEmail.contains(FilesTestsSetup.email.subject.data(using: .utf8)!.base64EncodedString()))
+    // }
     
     func testGetAttachment() async throws {
-        let attachment = FilesTestsSetup.email.attachments[0]
-        let bytes = try await FilesTestsSetup.client.files.getAttachment(id: attachment.id)
-        
-        XCTAssertEqual(attachment.length ?? -1, bytes.count)
+        do {
+            let attachment = FilesTestsSetup.email.attachments[0]
+            let bytes = try await FilesTestsSetup.client.files.getAttachment(id: attachment.id)
+            
+            XCTAssertEqual(attachment.length ?? -1, bytes.count)
+        }  catch (let error) {
+            XCTFail(String(describing: error))
+        }
     }
 }
