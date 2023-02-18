@@ -48,7 +48,7 @@
     {
       "identity" : "perfect-smtp",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/Agitek-io/Perfect-SMTP.git",
+      "location" : "https://github.com/mailosaur/Perfect-SMTP.git",
       "state" : {
         "branch" : "mailosaur-smtp-client",
         "revision" : "6a6bcb1e05cc25a789715a0eb7e5892d71bd5dcb"

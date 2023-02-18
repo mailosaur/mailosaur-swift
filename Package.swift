@@ -15,7 +15,7 @@ let package = Package(
             targets: ["Mailosaur"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/Agitek-io/Perfect-SMTP.git", branch: "mailosaur-smtp-client")
+        .package(url: "https://github.com/mailosaur/Perfect-SMTP.git", branch: "mailosaur-smtp-client")
     ],
     targets: [
         .target(
