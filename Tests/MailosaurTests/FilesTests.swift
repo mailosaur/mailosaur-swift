@@ -32,8 +32,8 @@ class FilesTestsSetup {
         
             let email = try await self.client.messages.get(server: self.server, criteria: MessageSearchCriteria(sentTo: testEmailAddress))
             self.email = email
-        } catch (let error) {
-            print(error)
+        }  catch (let error) {
+            XCTFail(String(describing: error))
         }
     }
 }
