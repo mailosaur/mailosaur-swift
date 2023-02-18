@@ -33,7 +33,7 @@ jobs:
       - name: Build project
         run: swift build
       - name: Run tests
-        run: swift test
+        run: swift test --vv
       - name: Notify on Failure
         uses: skitionek/notify-microsoft-teams@master
         if: ${{ failure() }}
