@@ -88,6 +88,9 @@ public class MailosaurClient {
     public lazy var usage: Usage = {
         Usage(client: self)
     } ()
+    public lazy var previews: Previews = {
+        Previews(client: self)
+    } ()
     
     public init(config: MailosaurConfig) {
         self.config = config

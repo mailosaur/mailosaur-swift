@@ -59,7 +59,7 @@ class Mailer {
         }
     }
     
-    private func getRandomString(length: Int) -> String {
+    public func getRandomString(length: Int) -> String {
         let characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
         return String((0..<length).map { _ in characters.randomElement()! })
     }

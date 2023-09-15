@@ -14,7 +14,7 @@ class EmailsTestsSetup {
     static let apiBaseUrl = ProcessInfo.processInfo.environment["MAILOSAUR_BASE_URL"]!
     static let server = ProcessInfo.processInfo.environment["MAILOSAUR_SERVER"]!
     static var emails: [MessageSummary]!
-    static let verifiedDomain =  ProcessInfo.processInfo.environment["MAILOSAUR_VERIFIED_DOMAIN"]!
+    static let verifiedDomain =  ProcessInfo.processInfo.environment["MAILOSAUR_VERIFIED_DOMAIN"]
     private static var initialized = false
     
     static func beforeAll() async throws {
@@ -182,7 +182,7 @@ final class EmailsTests: XCTestCase {
     }
     
     func testCreateSendText() async throws {
-        guard EmailsTestsSetup.verifiedDomain.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else { return }
+        try XCTSkipIf(EmailsTestsSetup.verifiedDomain == nil, "Skipping test")
         
         let subject = "New message"
         let message = try await EmailsTestsSetup.client.messages.create(server: EmailsTestsSetup.server, messageCreateOptions: MessageCreateOptions(to: "anything@\(EmailsTestsSetup.verifiedDomain)",
@@ -195,7 +195,7 @@ final class EmailsTests: XCTestCase {
     }
     
     func testCreateSendHtml() async throws {
-        guard EmailsTestsSetup.verifiedDomain.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else { return }
+        try XCTSkipIf(EmailsTestsSetup.verifiedDomain == nil, "Skipping test")
         
         let subject = "New HTML message"
         let message = try await EmailsTestsSetup.client.messages.create(server: EmailsTestsSetup.server, messageCreateOptions: MessageCreateOptions(to: "anything@\(EmailsTestsSetup.verifiedDomain)",
@@ -208,7 +208,7 @@ final class EmailsTests: XCTestCase {
     }
     
     func testCreateSendWithAttachment() async throws {
-        guard EmailsTestsSetup.verifiedDomain.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else { return }
+        try XCTSkipIf(EmailsTestsSetup.verifiedDomain == nil, "Skipping test")
         
         let subject = "New message with attachment"
         let data = try Data(contentsOf: Bundle.module.url(forResource: "cat", withExtension: "png")!)
@@ -232,7 +232,7 @@ final class EmailsTests: XCTestCase {
     }
     
     func testForwardText() async throws {
-        guard EmailsTestsSetup.verifiedDomain.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else { return }
+        try XCTSkipIf(EmailsTestsSetup.verifiedDomain == nil, "Skipping test")
         
         let body = "Forwarded message"
         let targetEmail = EmailsTestsSetup.emails[0]
@@ -245,7 +245,7 @@ final class EmailsTests: XCTestCase {
     }
     
     func testForwardHtml() async throws {
-        guard EmailsTestsSetup.verifiedDomain.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else { return }
+        try XCTSkipIf(EmailsTestsSetup.verifiedDomain == nil, "Skipping test")
         
         let body = "<p>Forwarded <strong>HTML</strong> message.</p>"
         let targetEmail = EmailsTestsSetup.emails[0]
@@ -258,7 +258,7 @@ final class EmailsTests: XCTestCase {
     }
     
     func testReplyText() async throws {
-        guard EmailsTestsSetup.verifiedDomain.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else { return }
+        try XCTSkipIf(EmailsTestsSetup.verifiedDomain == nil, "Skipping test")
         
         let body = "Reply message"
         let targetEmail = EmailsTestsSetup.emails[0]
@@ -270,7 +270,7 @@ final class EmailsTests: XCTestCase {
     }
     
     func testReplyHtml() async throws {
-        guard EmailsTestsSetup.verifiedDomain.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else { return }
+        try XCTSkipIf(EmailsTestsSetup.verifiedDomain == nil, "Skipping test")
         
         let body = "<p>Reply <strong>HTML</strong> message.</p>"
         let targetEmail = EmailsTestsSetup.emails[0]
@@ -282,7 +282,7 @@ final class EmailsTests: XCTestCase {
     }
     
     func testReplyWithAttachment() async throws {
-        guard EmailsTestsSetup.verifiedDomain.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else { return }
+        try XCTSkipIf(EmailsTestsSetup.verifiedDomain == nil, "Skipping test")
         
         let body = "<p>Reply with attachment.</p>"
         let targetEmail = EmailsTestsSetup.emails[0]

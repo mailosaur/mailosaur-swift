@@ -56,4 +56,27 @@ public class Files {
             throw error
         }
     }
+    
+    /// Downloads a screenshot of your email rendered in a real email client. Simply supply
+    /// the unique identifier for the required preview.
+    ///
+    /// - Parameter id: The identifier of the preview to be downloaded.
+    public func getPreviewResult(id: String) async -> Result<Data, Error> {
+        guard let client = self.client else { return .failure(MailosaurError.clientUninitialized) }
+        return await client.performRequest(path: "api/files/previews/\(id)", requestType: .data)
+    }
+    
+    /// Downloads a screenshot of your email rendered in a real email client. Simply supply
+    /// the unique identifier for the required preview.
+    ///
+    /// - Parameter id: The identifier of the preview to be downloaded.
+    public func getPreview(id: String) async throws -> Data {
+        let result = await self.getPreviewResult(id: id)
+        switch result {
+        case .success(let value):
+            return value
+        case .failure(let error):
+            throw error
+        }
+    }
 }

@@ -283,4 +283,27 @@ public class Messages {
             throw error
         }
     }
+    
+    /// Generates screenshots of an email rendered in the specified email clients.
+    ///
+    ///  - Parameter id: The identifier of the email to preview.
+    ///  - Parameter options: The options with which to generate previews.
+    public func generatePreviewsResult(id: String, options: PreviewRequestOptions) async -> Result<PreviewListResult, Error> {
+        guard let client = self.client else { return .failure(MailosaurError.clientUninitialized) }
+        return await client.performRequest(path: "api/messages/\(id)/previews", method: .post, params: options)
+    }
+    
+    /// Generates screenshots of an email rendered in the specified email clients.
+    ///
+    ///  - Parameter id: The identifier of the email to preview.
+    ///  - Parameter options: The options with which to generate previews.
+    public func generatePreviews(id: String, options: PreviewRequestOptions) async throws -> PreviewListResult {
+        let result = await self.generatePreviewsResult(id: id, options: options)
+        switch result {
+        case .success(let value):
+            return value
+        case .failure(let error):
+            throw error
+        }
+    }
 }
