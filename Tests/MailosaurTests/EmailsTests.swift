@@ -185,7 +185,7 @@ final class EmailsTests: XCTestCase {
         try XCTSkipIf(EmailsTestsSetup.verifiedDomain == nil, "Skipping test")
         
         let subject = "New message"
-        let message = try await EmailsTestsSetup.client.messages.create(server: EmailsTestsSetup.server, messageCreateOptions: MessageCreateOptions(to: "anything@\(EmailsTestsSetup.verifiedDomain)",
+        let message = try await EmailsTestsSetup.client.messages.create(server: EmailsTestsSetup.server, messageCreateOptions: MessageCreateOptions(to: "anything@\(EmailsTestsSetup.verifiedDomain ?? "")",
                                                                                                                                                     send: true,
                                                                                                                                                     subject: subject,
                                                                                                                                                     text: "This is a new email"))
@@ -196,9 +196,9 @@ final class EmailsTests: XCTestCase {
     
     func testCreateSendHtml() async throws {
         try XCTSkipIf(EmailsTestsSetup.verifiedDomain == nil, "Skipping test")
-        
+
         let subject = "New HTML message"
-        let message = try await EmailsTestsSetup.client.messages.create(server: EmailsTestsSetup.server, messageCreateOptions: MessageCreateOptions(to: "anything@\(EmailsTestsSetup.verifiedDomain)",
+        let message = try await EmailsTestsSetup.client.messages.create(server: EmailsTestsSetup.server, messageCreateOptions: MessageCreateOptions(to: "anything@\(EmailsTestsSetup.verifiedDomain ?? "")",
                                                                                                                                                     send: true,
                                                                                                                                                     subject: subject,
                                                                                                                                                     html: "<p>This is a new email.</p>"))
@@ -216,7 +216,7 @@ final class EmailsTests: XCTestCase {
                                                   fileName: "cat.png",
                                                   content: data.base64EncodedString())
         
-        let message = try await EmailsTestsSetup.client.messages.create(server: EmailsTestsSetup.server, messageCreateOptions: MessageCreateOptions(to: "anything@\(EmailsTestsSetup.verifiedDomain)",
+        let message = try await EmailsTestsSetup.client.messages.create(server: EmailsTestsSetup.server, messageCreateOptions: MessageCreateOptions(to: "anything@\(EmailsTestsSetup.verifiedDomain ?? "")",
                                                                                                                                                     send: true,
                                                                                                                                                     subject: subject,
                                                                                                                                                     html: "<p>This is a new email.</p>",
@@ -237,7 +237,7 @@ final class EmailsTests: XCTestCase {
         let body = "Forwarded message"
         let targetEmail = EmailsTestsSetup.emails[0]
         
-        let message = try await EmailsTestsSetup.client.messages.forward(id: targetEmail.id, messageForwardOptions: MessageForwardOptions(to: "anything@\(EmailsTestsSetup.verifiedDomain)",
+        let message = try await EmailsTestsSetup.client.messages.forward(id: targetEmail.id, messageForwardOptions: MessageForwardOptions(to: "anything@\(EmailsTestsSetup.verifiedDomain ?? "")",
                                                                                                                                           text: body))
         
         XCTAssertFalse(message.id.isEmpty)
@@ -250,7 +250,7 @@ final class EmailsTests: XCTestCase {
         let body = "<p>Forwarded <strong>HTML</strong> message.</p>"
         let targetEmail = EmailsTestsSetup.emails[0]
         
-        let message = try await EmailsTestsSetup.client.messages.forward(id: targetEmail.id, messageForwardOptions: MessageForwardOptions(to: "anything@\(EmailsTestsSetup.verifiedDomain)",
+        let message = try await EmailsTestsSetup.client.messages.forward(id: targetEmail.id, messageForwardOptions: MessageForwardOptions(to: "anything@\(EmailsTestsSetup.verifiedDomain ?? "")",
                                                                                                                                           html: body))
         
         XCTAssertFalse(message.id.isEmpty)
