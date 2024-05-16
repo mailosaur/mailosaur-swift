@@ -37,9 +37,9 @@ public struct Message: Decodable {
 
 public struct MessageAddress: Decodable {
     /// Gets or sets display name, if one is specified.
-    public let name: String
+    public let name: String?
     /// Gets or sets email address (applicable to email messages).
-    public let email: String
+    public let email: String?
     /// Gets or sets phone number (applicable to SMS messages).
     public let phone: String?
 }
