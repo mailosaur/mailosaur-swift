@@ -185,7 +185,7 @@ public class Messages {
                         return .success(res.messageListResult)
                     }
                     
-                    return .failure(MailosaurError.generic("No matching messages found in time. By default, only messages received in the last hour are checked (use receivedAfter to override this)."))
+                    return .failure(MailosaurError.generic("No matching messages found in time. By default, only messages received in the last hour are checked (use receivedAfter to override this). The search criteria used for this query was [\(criteria)] which timed out after \((timeout ?? 0) * 10)ms"))
                 }
                 
                 try? await Task.sleep(nanoseconds: UInt64(Double(delay) * Double(NSEC_PER_MSEC)))
