@@ -15,7 +15,7 @@ let package = Package(
             targets: ["Mailosaur"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/mailosaur/Perfect-SMTP.git", branch: "mailosaur-smtp-client")
+        .package(url: "https://github.com/sersoft-gmbh/swift-smtp.git", from: "2.10.0")
     ],
     targets: [
         .target(
@@ -23,7 +23,7 @@ let package = Package(
             dependencies: []),
         .testTarget(
             name: "MailosaurTests",
-            dependencies: ["Mailosaur", .product(name: "PerfectSMTP", package: "Perfect-SMTP")],
+            dependencies: ["Mailosaur", .product(name: "SwiftSMTP", package: "swift-smtp")],
         resources: [
             .process("Resources/cat.png"),
             .process("Resources/dog.png"),

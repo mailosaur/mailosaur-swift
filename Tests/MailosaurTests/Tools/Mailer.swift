@@ -6,8 +6,9 @@
 //
 
 import Foundation
+import NIO
 import Mailosaur
-import PerfectSMTP
+import SwiftSMTP
 
 class Mailer {
     public static let shared = Mailer()
@@ -22,34 +23,58 @@ class Mailer {
         let host = ProcessInfo.processInfo.environment["MAILOSAUR_SMTP_HOST"] ?? "mailosaur.net"
         let port = ProcessInfo.processInfo.environment["MAILOSAUR_SMTP_PORT"] ?? "25"
         
-        let smtp = SMTPClient(url: "smtp://\(host):\(port)", requiresTLSUpgrade: true)
-        let email = EMail(client: smtp)
+        // let smtp = SMTPClient(url: "smtp://\(host):\(port)", requiresTLSUpgrade: true)
+        let smtpConfig = Configuration(server: .init(hostname: host, 
+                                         port: Int(port),
+                                         encryption: .startTLS(.ifAvailable)),
+                           connectionTimeOut: .seconds(5),
+                           featureFlags: [.base64EncodeAllMessages, .maximumBase64LineLength64])
+
+        let evg = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+        let mailer = SwiftSMTP.Mailer(group: evg, configuration: smtpConfig)
         
         let randomString = self.getRandomString(length: 10)
+        let randomName = "\(randomString) \(randomString)"
         let randomFromAddress = "\(randomString)@\(Self.sVerifiedDomain)"
         let randomToAddress = sendToAddress ?? Servers.generateEmailAddress(serverId: server)
         
-        email.from = Recipient(name: "\(randomString) \(randomString)", address: randomFromAddress)
-        email.to = [Recipient(name: "\(randomString) \(randomString)", address: randomToAddress)]
-        email.subject = "\(randomString) subject"
-        email.text = Self.sText.replacingOccurrences(of: "REPLACED_DURING_TEST", with: randomString)
-        email.html = Self.sHtml.replacingOccurrences(of: "REPLACED_DURING_TEST", with: randomString)
+        let plainText = Self.sText.replacingOccurrences(of: "REPLACED_DURING_TEST", with: randomString)
+        let htmlText = Self.sHtml.replacingOccurrences(of: "REPLACED_DURING_TEST", with: randomString)
 
-        email.attachments.append(Attachment(path: Bundle.module.path(forResource: "cat", ofType: "png")!, contentId: "ii_1435fadb31d523f6"))
-        email.attachments.append(Attachment(path: Bundle.module.path(forResource: "dog", ofType: "png")!, contentId: "ii_1435fadb31d523f7"))
+        let cat = try Data(contentsOf: Bundle.module.url(forResource: "cat", withExtension: "png")!)
+        let dog = try Data(contentsOf: Bundle.module.url(forResource: "dog", withExtension: "png")!)
+
+        let email = Email(sender: .init(name: randomName, emailAddress: randomFromAddress),
+                  replyTo: nil,
+                  recipients: [
+                    .init(name: randomName, emailAddress: randomToAddress),
+                  ],
+                  subject: "\(randomString) subject",
+                  body: .universal(plain: plainText, html: htmlText),
+                  attachments: [
+                    .init(name: "cat.png",
+                          contentType: "image/png",
+                          data: cat),
+                    .init(name: "dog.png",
+                          contentType: "image/png",
+                          data: dog)
+                  ])
         
-        return try await withCheckedThrowingContinuation { continuation in
-            do {
-                try email.send() { code, header, body in
-                    print(code)
-                    print(header)
-                    print(body)
-                    continuation.resume(returning: ())
-                }
-            } catch (let error) {
-                print(error)
-                continuation.resume(throwing: error)
-            }
+        func _send(_ email: Email) async throws {
+            try await mailer.send(email)
+        }
+        
+        do {
+            print("Sending mail...")
+            try await _send(email)
+            print("Successfully sent mail!")
+        } catch {
+            print("Failed sending: \(error)")
+        }
+        do {
+            try await evg.shutdownGracefully()
+        } catch {
+            print("Failed shutdown: \(error)")
         }
     }
     

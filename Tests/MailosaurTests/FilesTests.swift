@@ -46,7 +46,7 @@ final class FilesTests: XCTestCase {
         XCTAssertNotNil(rawEmail)
         guard let rawEmail = rawEmail else { return }
         XCTAssertTrue(rawEmail.count > 0)
-        XCTAssertTrue(rawEmail.contains(FilesTestsSetup.email.subject.data(using: .utf8)!.base64EncodedString()))
+        XCTAssertTrue(rawEmail.contains(FilesTestsSetup.email.subject))
     }
     
     func testGetAttachment() async throws {
