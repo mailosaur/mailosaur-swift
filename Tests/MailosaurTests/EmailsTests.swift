@@ -167,6 +167,57 @@ final class EmailsTests: XCTestCase {
         }
     }
     
+    func testDeliverabilityReport() async throws {
+        let targetId = EmailsTestsSetup.emails[0].id
+        let result = try await EmailsTestsSetup.client.analysis.deliverability(email: targetId)
+        
+        XCTAssertNotNil(result)
+        
+        XCTAssertNotNil(result.spf)
+        XCTAssertNotNil(result.spf?.result)
+        XCTAssertNotNil(result.spf?.tags)
+        
+        XCTAssertNotNil(result.dkim)
+        for dkim in result.dkim {
+            XCTAssertNotNil(dkim)
+            XCTAssertNotNil(dkim.result)
+            XCTAssertNotNil(dkim.tags)
+        }
+        
+        XCTAssertNotNil(result.dmarc)
+        XCTAssertNotNil(result.dmarc?.rawValue)
+        XCTAssertNotNil(result.dmarc?.tags)
+        
+        XCTAssertNotNil(result.blockLists)
+        for blockList in result.blockLists {
+            XCTAssertTrue(blockList.id.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false)
+            XCTAssertTrue(blockList.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false)
+            XCTAssertNotNil(blockList.result)
+        }
+        
+        XCTAssertNotNil(result.content)
+        XCTAssertNotNil(result.content.embed)
+        XCTAssertNotNil(result.content.iframe)
+        XCTAssertNotNil(result.content.object)
+        XCTAssertNotNil(result.content.script)
+        XCTAssertNotNil(result.content.shortUrls)
+        XCTAssertNotNil(result.content.textSize)
+        XCTAssertNotNil(result.content.totalSize)
+        XCTAssertNotNil(result.content.missingAlt)
+        XCTAssertNotNil(result.content.missingListUnsubscribe)
+
+        XCTAssertNotNil(result.dnsRecords)
+        XCTAssertNotNil(result.dnsRecords.a)
+        XCTAssertNotNil(result.dnsRecords.mx)
+        XCTAssertNotNil(result.dnsRecords.ptr)
+        
+        XCTAssertNotNil(result.spamAssassin)
+        for rule in result.spamAssassin.rules {
+            XCTAssertTrue(rule.rule.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false)
+            XCTAssertTrue(rule.description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false)
+        }
+    }
+    
     func testDelete() async throws {
         let targetId = EmailsTestsSetup.emails[4].id
         
