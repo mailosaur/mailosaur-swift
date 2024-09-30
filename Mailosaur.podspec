@@ -11,7 +11,7 @@ Pod::Spec.new do |s|
 
   # Do not update s.version directly.
   # Instead, update the VERSION file and run ./scripts/version.sh
-  s.version               = '1.0.0'
+  s.version               = '1.1.0'
 
   s.summary               = 'Mailosaur lets you automate email and SMS tests as part of software development and QA..'
   s.homepage              = 'https://mailosaur.com/'

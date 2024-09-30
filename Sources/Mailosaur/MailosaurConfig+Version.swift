@@ -7,5 +7,5 @@
 //
 import Foundation
 extension MailosaurConfig {
-    public static let clientVersion = "1.0.0"
+    public static let clientVersion = "1.1.0"
 }

@@ -1,8 +1,8 @@
-# [Mailosaur - Swift library](https://mailosaur.com/) &middot; [![](https://github.com/mailosaur/mailosaur-swift/workflows/CI/badge.svg)](https://github.com/mailosaur/mailosaur-swift/actions) 
+# [Mailosaur - Swift library](https://mailosaur.com/) &middot; [![](https://github.com/mailosaur/mailosaur-swift/workflows/CI/badge.svg)](https://github.com/mailosaur/mailosaur-swift/actions)
 
 Mailosaur lets you automate email and SMS tests as part of software development and QA.
 
-- **Unlimited test email addresses for all**  - every account gives users an unlimited number of test email addresses to test with.
+- **Unlimited test email addresses for all** - every account gives users an unlimited number of test email addresses to test with.
 - **End-to-end (e2e) email and SMS testing** Allowing you to set up end-to-end tests for password reset emails, account verification processes and MFA/one-time passcodes sent via text message.
 - **Fake SMTP servers** Mailosaur also provides dummy SMTP servers to test with; allowing you to catch email in staging environments - preventing email being sent to customers by mistake.
 
@@ -50,7 +50,7 @@ Alternatively, update your Package.swift file (ensure you enter the latest versi
 ```
 let package = Package(
     dependencies: [
-        .package(url: "https://github.com/mailosaur/mailosaur-swift", from: "1.0.0")
+        .package(url: "https://github.com/mailosaur/mailosaur-swift", from: "1.1.0")
     ],
     // ...
 )
@@ -61,7 +61,7 @@ let package = Package(
 To install Mailosaur, simply add the following line to your Podfile (ensure the version number is correct):
 
 ```rb
-pod 'Mailosaur', '~> 1.0'
+pod 'Mailosaur', '~> 1.1'
 ```
 
 Then, run the following command:
@@ -100,7 +100,7 @@ let mailosaur = MailosaurClient(config: MailosaurConfig(apiKey: "YOUR_API_KEY"))
 This library is powered by the Mailosaur [email & SMS testing API](https://mailosaur.com/docs/api/). You can easily check out the API itself by looking at our [API reference documentation](https://mailosaur.com/docs/api/) or via our Postman or Insomnia collections:
 
 [![Run in Postman](https://run.pstmn.io/button.svg)](https://app.getpostman.com/run-collection/6961255-6cc72dff-f576-451a-9023-b82dec84f95d?action=collection%2Ffork&collection-url=entityId%3D6961255-6cc72dff-f576-451a-9023-b82dec84f95d%26entityType%3Dcollection%26workspaceId%3D386a4af1-4293-4197-8f40-0eb49f831325)
- [![Run in Insomnia}](https://insomnia.rest/images/run.svg)](https://insomnia.rest/run/?label=Mailosaur&uri=https%3A%2F%2Fmailosaur.com%2Finsomnia.json)
+[![Run in Insomnia}](https://insomnia.rest/images/run.svg)](https://insomnia.rest/run/?label=Mailosaur&uri=https%3A%2F%2Fmailosaur.com%2Finsomnia.json)
 
 ## Creating an account
 
@@ -118,15 +118,15 @@ Mailosaur gives you an **unlimited number of test email addresses** - with no se
 
 Here's how it works:
 
-* When you create an account, you are given a server.
-* Every server has its own **Server Domain** name (e.g. `abc123.mailosaur.net`)
-* Any email address that ends with `@{YOUR_SERVER_DOMAIN}` will work with Mailosaur without any special setup. For example:
-  * `build-423@abc123.mailosaur.net`
-  * `john.smith@abc123.mailosaur.net`
-  * `rAnDoM63423@abc123.mailosaur.net`
-* You can create more servers when you need them. Each one will have its own domain name.
+- When you create an account, you are given a server.
+- Every server has its own **Server Domain** name (e.g. `abc123.mailosaur.net`)
+- Any email address that ends with `@{YOUR_SERVER_DOMAIN}` will work with Mailosaur without any special setup. For example:
+  - `build-423@abc123.mailosaur.net`
+  - `john.smith@abc123.mailosaur.net`
+  - `rAnDoM63423@abc123.mailosaur.net`
+- You can create more servers when you need them. Each one will have its own domain name.
 
-***Can't use test email addresses?** You can also [use SMTP to test email](https://mailosaur.com/docs/email-testing/sending-to-mailosaur/#sending-via-smtp). By connecting your product or website to Mailosaur via SMTP, Mailosaur will catch all email your application sends, regardless of the email address.*
+**\*Can't use test email addresses?** You can also [use SMTP to test email](https://mailosaur.com/docs/email-testing/sending-to-mailosaur/#sending-via-smtp). By connecting your product or website to Mailosaur via SMTP, Mailosaur will catch all email your application sends, regardless of the email address.\*
 
 ## Find an email
 
@@ -152,7 +152,7 @@ print(message.subject) // "Hello, World!!"
 
 ### My email wasn't found
 
-First, check that the email you sent is visible in the [Mailosaur Dashboard](https://mailosaur.com/api/project/messages). 
+First, check that the email you sent is visible in the [Mailosaur Dashboard](https://mailosaur.com/api/project/messages).
 
 If it is, the likely reason is that by default, `messages.get` only searches emails received by Mailosaur in the last 1 hour. You can override this behavior (see the `receivedAfter` option below), however we only recommend doing this during setup, as your tests will generally run faster with the default settings:
 
@@ -260,7 +260,7 @@ Mailosaur auto-detects links in plain text content too, which is especially usef
 ```swift
 // How many links?
     print(message.text.links.count) // 2
-    
+
 if let firstLink = message.text.links.first {
     print(firstLink.text) // "Google Search"
     print(firstLink.href) // "https://www.google.com/"
@@ -298,7 +298,7 @@ if let firstAttachment = message.attachments.first {
 ```swift
 if let firstAttachment = message.attachments.first {
     let fileBytes = try mailosaur.files.getAttachment(id: firstAttachment.id)
-    
+
     let path = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent(firstAttachment.fileName)
     try fileBytes.write(to: path)
 }
@@ -334,7 +334,7 @@ Because a web beacon is simply another form of remotely-hosted image, you can us
 ```swift
 if let image = message.html.images?.first {
     print(image.src) // "https://example.com/s.png?abc123"
-    
+
     // Make an HTTP call to trigger the web beacon
     let (_, response) = try await URLSession.shared.data(for: URLRequest(url: URL(string: image.src)!))
     if let res = response as? HTTPURLResponse {
