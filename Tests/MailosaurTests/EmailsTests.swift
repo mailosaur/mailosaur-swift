@@ -258,6 +258,23 @@ final class EmailsTests: XCTestCase {
         XCTAssertEqual(subject, message.subject)
     }
     
+    func testCreateWithCc() async throws {
+        try XCTSkipIf(EmailsTestsSetup.verifiedDomain == nil, "Skipping test")
+
+        let subject = "CC message"
+        let ccRecipient = "someoneelse@\(EmailsTestsSetup.verifiedDomain ?? "")"
+        let message = try await EmailsTestsSetup.client.messages.create(server: EmailsTestsSetup.server, messageCreateOptions: MessageCreateOptions(to: "anything@\(EmailsTestsSetup.verifiedDomain ?? "")",
+                                                                                                                                                    send: true,
+                                                                                                                                                    subject: subject,
+                                                                                                                                                    html: "<p>This is a new email.</p>",
+                                                                                                                                                    cc: ccRecipient))
+        
+        XCTAssertFalse(message.id.isEmpty)
+        XCTAssertEqual(subject, message.subject)
+        XCTAssertEqual(1, message.cc.count)
+        XCTAssertEqual(ccRecipient, message.cc[0].email)
+    }
+    
     func testCreateSendWithAttachment() async throws {
         try XCTSkipIf(EmailsTestsSetup.verifiedDomain == nil, "Skipping test")
         
@@ -308,6 +325,23 @@ final class EmailsTests: XCTestCase {
         XCTAssertTrue(message.html.body?.contains(body) == true)
     }
     
+    func testForwardWithCc() async throws {
+        try XCTSkipIf(EmailsTestsSetup.verifiedDomain == nil, "Skipping test")
+
+        let body = "<p>Forwarded <strong>HTML</strong> message.</p>"
+        let targetEmail = EmailsTestsSetup.emails[0]
+        let ccRecipient = "someoneelse@\(EmailsTestsSetup.verifiedDomain ?? "")"
+        
+        let message = try await EmailsTestsSetup.client.messages.forward(id: targetEmail.id, messageForwardOptions: MessageForwardOptions(to: "forwardcc@\(EmailsTestsSetup.verifiedDomain ?? "")",
+                                                                                                                                          html: body,
+                                                                                                                                          cc: ccRecipient))
+        
+        XCTAssertFalse(message.id.isEmpty)
+        XCTAssertTrue(message.html.body?.contains(body) == true)
+        XCTAssertEqual(1, message.cc.count)
+        XCTAssertEqual(ccRecipient, message.cc[0].email)
+    }
+    
     func testReplyText() async throws {
         try XCTSkipIf(EmailsTestsSetup.verifiedDomain == nil, "Skipping test")
         
@@ -330,6 +364,21 @@ final class EmailsTests: XCTestCase {
         
         XCTAssertFalse(message.id.isEmpty)
         XCTAssertTrue(message.html.body?.contains(body) == true)
+    }
+    
+    func testReplyWithCc() async throws {
+        try XCTSkipIf(EmailsTestsSetup.verifiedDomain == nil, "Skipping test")
+
+        let body = "Reply CC Message"
+        let targetEmail = EmailsTestsSetup.emails[0]
+        let ccRecipient = "someoneelse@\(EmailsTestsSetup.verifiedDomain ?? "")"
+        
+        let message = try await EmailsTestsSetup.client.messages.reply(id: targetEmail.id, messageReplyOptions: MessageReplyOptions(html: body, cc: ccRecipient))
+        
+        XCTAssertFalse(message.id.isEmpty)
+        XCTAssertTrue(message.html.body?.contains(body) == true)
+        XCTAssertEqual(1, message.cc.count)
+        XCTAssertEqual(ccRecipient, message.cc[0].email)
     }
     
     func testReplyWithAttachment() async throws {

@@ -166,6 +166,8 @@ public enum MessageSearchMatchOperator: String, Encodable {
 public struct MessageCreateOptions: Encodable {
     /// The email address to which the email will be sent.
     public let to: String
+    /// The email address to which the email will be CC'd.
+    public let cc: String?
     /// If true, email will be sent upon creation.
     public let send: Bool
     /// The email subject line.
@@ -185,8 +187,10 @@ public struct MessageCreateOptions: Encodable {
     ///  - Parameter text: Any additional plain text content to include in the reply. Note that only text or html can be supplied, not both
     ///  - Parameter html: Any additional HTML content to include in the reply. Note that only html or text can be supplied, not both.
     ///  - Parameter attachments: Any message attachments.
-    public init(to: String, send: Bool, subject: String, text: String? = nil, html: String? = nil, attachments: [MessageAttachmentOptions]? = nil) {
+    ///  - Parameter cc: The email address to which the email will be CC'd.
+    public init(to: String, send: Bool, subject: String, text: String? = nil, html: String? = nil, attachments: [MessageAttachmentOptions]? = nil, cc: String? = nil) {
         self.to = to
+        self.cc = cc
         self.send = send
         self.subject = subject
         self.text = text
@@ -198,6 +202,8 @@ public struct MessageCreateOptions: Encodable {
 public struct MessageForwardOptions: Encodable {
     /// The email address to which the email will be sent.
     public let to: String
+    /// The email address to which the email will be CC'd.
+    public let cc: String?
     // Any additional plain text content to forward the email with. Note that only text or html can be supplied, not both.
     public let text: String?
     /// Any additional HTML content to forward the email with. Note that only html or text can be supplied, not both.
@@ -206,16 +212,20 @@ public struct MessageForwardOptions: Encodable {
     /// Initializes a new instance of the MessageForwardOptions class.
     ///  - Important: Note that only html or text can be supplied, not both.
     ///  - Parameter to: The email address to which the email will be sent.
+    ///  - Parameter cc: The email address to which the email will be sent.
     ///  - Parameter text: Any additional plain text content to include in the reply. Note that only text or html can be supplied, not both
     ///  - Parameter html: Any additional HTML content to include in the reply. Note that only html or text can be supplied, not both.
-    public init(to: String, text: String? = nil, html: String? = nil) {
+    public init(to: String, text: String? = nil, html: String? = nil, cc: String? = nil) {
         self.to = to
+        self.cc = cc
         self.text = text
         self.html = html
     }
 }
 
 public struct MessageReplyOptions: Encodable {
+    /// The email address to which the email will be CC'd.
+    public let cc: String?
     /// Any additional plain text content to include in the reply. Note that only text or html can be supplied, not both.
     public let text: String?
     /// Any additional HTML content to include in the reply. Note that only html or text can be supplied, not both.
@@ -228,7 +238,9 @@ public struct MessageReplyOptions: Encodable {
     ///  - Important: Note that only html or text can be supplied, not both.
     ///  - Parameter text: Any additional plain text content to include in the reply. Note that only text or html can be supplied, not both
     ///  - Parameter html: Any additional HTML content to include in the reply. Note that only html or text can be supplied, not both.
-    public init(text: String? = nil, html: String? = nil, attachments: [MessageAttachmentOptions]? = nil) {
+    ///  - Parameter cc: The email address to which the email will be sent.
+    public init(text: String? = nil, html: String? = nil, attachments: [MessageAttachmentOptions]? = nil, cc: String? = nil) {
+        self.cc = cc
         self.text = text
         self.html = html
         self.attachments = attachments
