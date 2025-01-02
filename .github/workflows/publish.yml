@@ -15,7 +15,7 @@ jobs:
       - name: Version
         run: |
           version=`git describe --abbrev=0 --tags` &&	
-          sed -i s/\[0-9]\.\[0-9]\.\[0-9]/$version/ VERSION
+          sed -iE "s|[0-9]\.[0-9]\.[0-9]|$version|" VERSION
           ./scripts/version.sh
       - name: Push to Cocoapods
         env:
