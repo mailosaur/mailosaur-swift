@@ -50,7 +50,7 @@ Alternatively, update your Package.swift file (ensure you enter the latest versi
 ```
 let package = Package(
     dependencies: [
-        .package(url: "https://github.com/mailosaur/mailosaur-swift", from: "1.0.0")
+        .package(url: "https://github.com/mailosaur/mailosaur-swift", from: "1.x.x")
     ],
     // ...
 )

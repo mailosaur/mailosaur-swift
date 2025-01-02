@@ -29,7 +29,3 @@ do
 
   echo "Successfully updated '$(basename $podspec)'"
 done
-
-# Replace the version in README.md
-sed -iE "s|from: \"[0-9]\.[0-9]\.[0-9]\"|from: \"$version\"|" README.md
-echo "Successfully updated 'README.md'"
