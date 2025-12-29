@@ -16,13 +16,13 @@ public class Previews {
     }
     
     /// Returns the list of all email clients that can be used to generate email previews.
-    public func listEmailClientsResult() async -> Result<PreviewEmailClientListResult, Error> {
+    public func listEmailClientsResult() async -> Result<EmailClientListResult, Error> {
         guard let client = self.client else { return .failure(MailosaurError.clientUninitialized) }
-        return await client.performRequest(path: "api/previews/clients")
+        return await client.performRequest(path: "api/screenshots/clients")
     }
     
     /// Returns the list of all email clients that can be used to generate email previews.
-    public func listEmailClients() async throws -> PreviewEmailClientListResult {
+    public func listEmailClients() async throws -> EmailClientListResult {
         let result = await self.listEmailClientsResult()
         switch result {
         case .success(let value):

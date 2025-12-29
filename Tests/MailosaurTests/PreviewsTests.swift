@@ -11,7 +11,7 @@ import XCTest
 class PreviewsTestsSetup {
     static let apiKey = ProcessInfo.processInfo.environment["MAILOSAUR_API_KEY"]!
     static let apiBaseUrl = ProcessInfo.processInfo.environment["MAILOSAUR_BASE_URL"]!
-    static let server = ProcessInfo.processInfo.environment["MAILOSAUR_PREVIEWS_SERVER"]!
+    static let server = ProcessInfo.processInfo.environment["MAILOSAUR_SERVER"]!
     static var client: MailosaurClient!
     static var initialized = false
     
@@ -36,8 +36,6 @@ final class PreviewsTests: XCTestCase {
     }
     
     func testGeneratePreviews() async throws {
-        try XCTSkipIf(EmailsTestsSetup.server == nil, "Skipping test")
-        
         let randomString = Mailer.shared.getRandomString(length: 10)
         let host = ProcessInfo.processInfo.environment["MAILOSAUR_SMTP_HOST"]  ?? "mailosaur.net"
         let testEmailAddress = "\(randomString)@\(PreviewsTestsSetup.server).\(host)"
@@ -46,8 +44,7 @@ final class PreviewsTests: XCTestCase {
 
         let email = try await PreviewsTestsSetup.client.messages.get(server: PreviewsTestsSetup.server, criteria: MessageSearchCriteria(sentTo: testEmailAddress))
         
-        let request = PreviewRequest(emailClient: "OL2021")
-        let options = PreviewRequestOptions(previews: [request])
+        let options = PreviewRequestOptions(emailClients: ["iphone-16plus-applemail-lightmode-portrait"])
         
         let result = try await PreviewsTestsSetup.client.messages.generatePreviews(id: email.id, options: options)
         XCTAssertTrue(result.items.count > 0)

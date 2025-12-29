@@ -123,6 +123,8 @@ public class MailosaurClient {
             switch httpResponse.statusCode {
             case 200:
                 return .success((data, httpResponse))
+            case 202:
+                return .success((data, httpResponse))
             case 204:
                 switch requestType {
                 case .json:
@@ -140,6 +142,8 @@ public class MailosaurClient {
                 return .failure(MailosaurError.serverError("Insufficient permission to perform that task."))
             case 404:
                 return .failure(MailosaurError.serverError("Not found, check input parameters."))
+            case 410:
+                return .failure(MailosaurError.serverError("Permanently expired or deleted."))
             default:
                 return .failure(MailosaurError.serverError("An API error occurred (\(httpResponse.statusCode)"))
             }
