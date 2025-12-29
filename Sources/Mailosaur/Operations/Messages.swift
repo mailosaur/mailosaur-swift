@@ -290,7 +290,7 @@ public class Messages {
     ///  - Parameter options: The options with which to generate previews.
     public func generatePreviewsResult(id: String, options: PreviewRequestOptions) async -> Result<PreviewListResult, Error> {
         guard let client = self.client else { return .failure(MailosaurError.clientUninitialized) }
-        return await client.performRequest(path: "api/messages/\(id)/previews", method: .post, params: options)
+        return await client.performRequest(path: "api/messages/\(id)/screenshots", method: .post, params: options)
     }
     
     /// Generates screenshots of an email rendered in the specified email clients.
