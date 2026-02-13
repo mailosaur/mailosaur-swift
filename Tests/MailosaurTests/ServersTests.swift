@@ -5,56 +5,54 @@
 //  Created by Mailosaur on 26.01.2023.
 //
 
-import XCTest
+import Foundation
+import Testing
 @testable import Mailosaur
 
-final class ServersTests: XCTestCase {
-    private static var client: MailosaurClient!
+@Suite("Server Management Tests", .serialized)
+struct ServersTests {
     private static let apiKey = ProcessInfo.processInfo.environment["MAILOSAUR_API_KEY"]!
     private static let apiBaseUrl = ProcessInfo.processInfo.environment["MAILOSAUR_BASE_URL"]!
+    private static let client = MailosaurClient(config: MailosaurConfig(apiKey: apiKey, baseUrl: URL(string: apiBaseUrl)!))
     
-    override class func setUp() {
-        super.setUp()
-        
-        let client = MailosaurClient(config: MailosaurConfig(apiKey: apiKey, baseUrl: URL(string: apiBaseUrl)!))
-        self.client = client
-    }
-    
-    func testList() async throws {
+    @Test("List servers")
+    func list() async throws {
         let servers = try await Self.client.servers.list().items
-        XCTAssertTrue(servers.count > 1)
+        #expect(servers.count > 1)
     }
     
-    func testGetNotfound() async throws {
+    @Test("Get non-existent server returns not found error")
+    func getNotfound() async throws {
         do {
             _ = try await Self.client.servers.get(id: "efe907e9-74ed-4113-a3e0-a3d41d914765")
+            Issue.record("Test should have thrown an error, but it didn't")
         } catch (let error) {
             if case let MailosaurError.serverError(message) = error {
-                XCTAssertTrue(message.contains("Not found"))
-                return
+                #expect(message.contains("Not found"))
             } else {
-                XCTFail("Error is not a MailosaurError")
+                Issue.record("Error is not a MailosaurError")
             }
         }
     }
     
-    func testCrud() async throws {
+    @Test("Create, retrieve, update, and delete server")
+    func crud() async throws {
         let serverName = "My test"
         let options = ServerCreateOptions(name: serverName)
         
         // Create a new server
         let createdServer = try await Self.client.servers.create(options: options)
-        XCTAssertFalse(createdServer.id.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-        XCTAssertEqual(createdServer.name, serverName)
-//        XCTAssertNotNil(createdServer.users)
-        XCTAssertEqual(0, createdServer.messages)
+        #expect(!createdServer.id.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        #expect(createdServer.name == serverName)
+//        #expect(createdServer.users != nil)
+        #expect(createdServer.messages == 0)
         
         // Retrieve a server and confirm it has expected content
         let retrievedServer = try await Self.client.servers.get(id: createdServer.id)
-        XCTAssertEqual(createdServer.id, retrievedServer.id)
-        XCTAssertEqual(createdServer.name, retrievedServer.name)
-        XCTAssertEqual(createdServer.users, retrievedServer.users)
-        XCTAssertEqual(createdServer.messages, retrievedServer.messages)
+        #expect(createdServer.id == retrievedServer.id)
+        #expect(createdServer.name == retrievedServer.name)
+        #expect(createdServer.users == retrievedServer.users)
+        #expect(createdServer.messages == retrievedServer.messages)
         
         // Update a server and confirm it has changed
         let updatedServerParams = Server(id: retrievedServer.id,
@@ -62,10 +60,10 @@ final class ServersTests: XCTestCase {
                                          users: retrievedServer.users,
                                          messages: retrievedServer.messages)
         let updatedServer = try await Self.client.servers.update(id: updatedServerParams.id, server: updatedServerParams)
-        XCTAssertEqual(updatedServerParams.id, updatedServer.id)
-        XCTAssertEqual(updatedServerParams.name, updatedServer.name)
-        XCTAssertEqual(updatedServerParams.users, updatedServer.users)
-        XCTAssertEqual(updatedServerParams.messages, updatedServer.messages)
+        #expect(updatedServerParams.id == updatedServer.id)
+        #expect(updatedServerParams.name == updatedServer.name)
+        #expect(updatedServerParams.users == updatedServer.users)
+        #expect(updatedServerParams.messages == updatedServer.messages)
         
         // Delete server
         try await Self.client.servers.delete(id: retrievedServer.id)
@@ -73,32 +71,24 @@ final class ServersTests: XCTestCase {
         // Attempting to delete again should fail
         do {
             try await Self.client.servers.delete(id: retrievedServer.id)
+            Issue.record("Test should have thrown an error, but it didn't")
         } catch (let error) {
-            XCTAssertTrue(error is MailosaurError)
-            return
+            #expect(error is MailosaurError)
         }
-        
-        XCTFail("Test should end with an error, but it didn't")
     }
     
-    func testFailedCreate() async throws {
-        guard let client = Self.client else {
-            XCTFail("Client is not initialized")
-            return
-        }
-        
+    @Test("Create server with empty name fails")
+    func failedCreate() async throws {
         let options = ServerCreateOptions(name: "")
         do {
-            _ = try await client.servers.create(options: options)
+            _ = try await Self.client.servers.create(options: options)
+            Issue.record("Test should have thrown an error, but it didn't")
         } catch (let error) {
             if case let MailosaurError.serverError(message) = error {
-                XCTAssertTrue(message.contains("Servers need a name"))
-                return
+                #expect(message.contains("Servers need a name"))
             } else {
-                XCTFail("Error is not a MailosaurError")
+                Issue.record("Error is not a MailosaurError")
             }
         }
-        
-        XCTFail("Test should end with an error, but it didn't")
     }
 }

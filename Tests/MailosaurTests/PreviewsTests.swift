@@ -5,37 +5,28 @@
 //  Created by Mailosaur on 28.01.2023.
 //
 
-import XCTest
+import Foundation
+import Testing
 @testable import Mailosaur
 
-class PreviewsTestsSetup {
+actor PreviewsTestsSetup {
     static let apiKey = ProcessInfo.processInfo.environment["MAILOSAUR_API_KEY"]!
     static let apiBaseUrl = ProcessInfo.processInfo.environment["MAILOSAUR_BASE_URL"]!
     static let server = ProcessInfo.processInfo.environment["MAILOSAUR_SERVER"]!
-    static var client: MailosaurClient!
-    static var initialized = false
-    
-    static func beforeAll() async throws {
-        guard initialized == false else { return }
-        self.initialized = true
-        
-        let client = MailosaurClient(config: MailosaurConfig(apiKey: self.apiKey, baseUrl: URL(string: self.apiBaseUrl)!))
-        self.client = client
-    }
+    static let client = MailosaurClient(config: MailosaurConfig(apiKey: apiKey, baseUrl: URL(string: apiBaseUrl)!))
 }
 
-final class PreviewsTests: XCTestCase {
-    override func setUp() async throws {
-        try await super.setUp()
-        try await PreviewsTestsSetup.beforeAll()
-    }
+@Suite("Email Preview Tests", .serialized)
+struct PreviewsTests {
     
-    func testListEmailClients() async throws {
+    @Test("List available email clients")
+    func listEmailClients() async throws {
         let result = try await PreviewsTestsSetup.client.previews.listEmailClients();
-        XCTAssertTrue(result.items.count > 1)
+        #expect(result.items.count > 1)
     }
     
-    func testGeneratePreviews() async throws {
+    @Test("Generate email previews")
+    func generatePreviews() async throws {
         let randomString = Mailer.shared.getRandomString(length: 10)
         let host = ProcessInfo.processInfo.environment["MAILOSAUR_SMTP_HOST"]  ?? "mailosaur.net"
         let testEmailAddress = "\(randomString)@\(PreviewsTestsSetup.server).\(host)"
@@ -47,9 +38,9 @@ final class PreviewsTests: XCTestCase {
         let options = PreviewRequestOptions(emailClients: ["iphone-16plus-applemail-lightmode-portrait"])
         
         let result = try await PreviewsTestsSetup.client.messages.generatePreviews(id: email.id, options: options)
-        XCTAssertTrue(result.items.count > 0)
+        #expect(result.items.count > 0)
                     
         let bytes = try await PreviewsTestsSetup.client.files.getPreview(id: result.items[0].id)
-        XCTAssertTrue(bytes.count > 1)
+        #expect(bytes.count > 1)
     }
 }

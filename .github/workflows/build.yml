@@ -11,9 +11,12 @@ concurrency:
   group: mailosaur-swift
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: ${{ vars.MACOS }}
     timeout-minutes: 10
 
     env:
@@ -25,20 +28,22 @@ jobs:
       MAILOSAUR_VERIFIED_DOMAIN: ${{ secrets.MAILOSAUR_VERIFIED_DOMAIN }}
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout source code
+        uses: actions/checkout@v4
+      - name: Checkout custom actions
+        uses: actions/checkout@v4
+        with:
+          repository: mailosaur/actions
+          token: ${{ secrets.CUSTOM_ACTIONS_TOKEN }}
+          path: .github/actions
       - name: Select Xcode version
         run: sudo xcode-select -s '/Applications/Xcode.app/Contents/Developer'
-      # - name: Pod lib lint
-      #   run: pod lib lint --allow-warnings
       - name: Build project
         run: swift build
       - name: Run tests
         run: swift test
-      - name: Notify on Failure
-        uses: skitionek/notify-microsoft-teams@master
-        if: ${{ failure() }}
+      - name: Send notifications
+        if: ${{ always() }}
+        uses: ./.github/actions/notify
         with:
-          webhook_url: ${{ secrets.TEAMS_BUILDS_WEBHOOK }}
-          needs: ${{ toJson(needs) }}
-          job: ${{ toJson(job) }}
-          overwrite: "{ title: `${workflow} failed for ${repository.name}` }"
+          webhook-url: ${{ secrets.NOTIFICATION_URL }}
