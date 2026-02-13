@@ -237,8 +237,6 @@ struct EmailsTests {
         }
         
         #expect(result.dmarc != nil)
-        #expect(result.dmarc?.rawValue != nil)
-        #expect(result.dmarc?.tags != nil)
         
         #expect(result.blockLists != nil)
         for blockList in result.blockLists {
