@@ -16,7 +16,7 @@ actor PreviewsTestsSetup {
     static let client = MailosaurClient(config: MailosaurConfig(apiKey: apiKey, baseUrl: URL(string: apiBaseUrl)!))
 }
 
-@Suite("Email Preview Tests")
+@Suite("Email Preview Tests", .serialized)
 struct PreviewsTests {
     
     @Test("List available email clients")

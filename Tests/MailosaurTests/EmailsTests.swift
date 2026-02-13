@@ -40,7 +40,7 @@ actor EmailsTestsSetup {
     }
 }
 
-@Suite("Email Message Tests")
+@Suite("Email Message Tests", .serialized)
 struct EmailsTests {
     
     @Test("List all email summaries")

@@ -42,7 +42,7 @@ actor FilesTestsSetup {
     }
 }
 
-@Suite("File Operations Tests")
+@Suite("File Operations Tests", .serialized)
 struct FilesTests {
     
     @Test("Get email as raw MIME data")

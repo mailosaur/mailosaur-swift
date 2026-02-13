@@ -9,7 +9,7 @@ import Foundation
 import Testing
 @testable import Mailosaur
 
-@Suite("Usage API Tests")
+@Suite("Usage API Tests", .serialized)
 struct UsageTests {
     private static let apiKey = ProcessInfo.processInfo.environment["MAILOSAUR_API_KEY"]!
     private static let apiBaseUrl = ProcessInfo.processInfo.environment["MAILOSAUR_BASE_URL"]!
