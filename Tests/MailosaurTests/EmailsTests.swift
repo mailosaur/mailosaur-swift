@@ -5,55 +5,71 @@
 //  Created by Mailosaur on 28.01.2023.
 //
 
-import XCTest
+import Foundation
+import Testing
 @testable import Mailosaur
 
-class EmailsTestsSetup {
-    static var client: MailosaurClient!
+actor EmailsTestsSetup {
     static let apiKey = ProcessInfo.processInfo.environment["MAILOSAUR_API_KEY"]!
     static let apiBaseUrl = ProcessInfo.processInfo.environment["MAILOSAUR_BASE_URL"]!
     static let server = ProcessInfo.processInfo.environment["MAILOSAUR_SERVER"]!
-    static var emails: [MessageSummary]!
+    static let client = MailosaurClient(config: MailosaurConfig(apiKey: apiKey, baseUrl: URL(string: apiBaseUrl)!))
     static let verifiedDomain =  ProcessInfo.processInfo.environment["MAILOSAUR_VERIFIED_DOMAIN"]
-    private static var initialized = false
+    private static var _emails: [MessageSummary]?
+    private static var initializationTask: Task<[MessageSummary], Error>?
     
-    static func beforeAll() async throws {
-        guard initialized == false else { return }
-        self.initialized = true
+    static func ensureInitialized() async throws -> [MessageSummary] {
+        if let emails = _emails {
+            return emails
+        }
         
-        let client = MailosaurClient(config: MailosaurConfig(apiKey: self.apiKey, baseUrl: URL(string: self.apiBaseUrl)!))
-        self.client = client
+        if let task = initializationTask {
+            return try await task.value
+        }
         
-        try await client.messages.deleteAll(server: self.server)
-        try await Mailer.shared.sendEmails(client: self.client, server: self.server, quantity: 5)
-        self.emails = try await client.messages.list(server: self.server).items
+        let task = Task<[MessageSummary], Error> {
+            try await client.messages.deleteAll(server: server)
+            try await Mailer.shared.sendEmails(client: client, server: server, quantity: 5)
+            let emails = try await client.messages.list(server: server).items
+            _emails = emails
+            return emails
+        }
+        
+        initializationTask = task
+        return try await task.value
     }
 }
 
-final class EmailsTests: XCTestCase {
-    override func setUp() async throws {
-        try await super.setUp()
-        try await EmailsTestsSetup.beforeAll()
-    }
+@Suite("Email Message Tests")
+struct EmailsTests {
     
-    func testEmail() throws {
-        for email in EmailsTestsSetup.emails {
+    @Test("List all email summaries")
+    func listEmails() async throws {
+        let emails = try await EmailsTestsSetup.ensureInitialized()
+        
+        for email in emails {
             validateEmailSummary(email: email)
         }
     }
     
-    func testListReceivedAfter() async throws {
+    @Test("List emails received after a specific date")
+    func listReceivedAfter() async throws {
+        try await EmailsTestsSetup.ensureInitialized()
+        
         let pastDate = Calendar.current.date(byAdding: .minute, value: -10, to: Date.now)
         let pastEmails = try await EmailsTestsSetup.client.messages.list(server: EmailsTestsSetup.server, receivedAfter: pastDate)
         
-        XCTAssertGreaterThan(pastEmails.items.count, 0)
+        #expect(pastEmails.items.count > 0)
         
         let futureEmails = try await EmailsTestsSetup.client.messages.list(server: EmailsTestsSetup.server, receivedAfter: Date.now)
         
-        XCTAssertEqual(0, futureEmails.items.count)
+        #expect(futureEmails.items.count == 0)
     }
     
-    func testGet() async throws {
+    @Test("Get email by search criteria")
+    func getEmail() async throws {
+        try await EmailsTestsSetup.ensureInitialized()
+        
         let host = ProcessInfo.processInfo.environment["MAILOSAUR_SMTP_HOST"] ?? "mailosaur.net"
         let testEmailAddress = "wait_for_test@\(EmailsTestsSetup.server).\(host)"
         
@@ -63,74 +79,98 @@ final class EmailsTests: XCTestCase {
         validateEmail(email: email)
     }
     
-    func testGetById() async throws {
-        let emailToRetrieve = EmailsTestsSetup.emails[0]
+    @Test("Get email by ID")
+    func getById() async throws {
+        let emails = try await EmailsTestsSetup.ensureInitialized()
+        
+        let emailToRetrieve = emails[0]
         let email = try await EmailsTestsSetup.client.messages.getById(id: emailToRetrieve.id)
         validateEmail(email: email)
         validateHeaders(email: email)
     }
     
-    func testGetByIdNotFound() async throws {
+    @Test("Get email by invalid ID throws error")
+    func getByIdNotFound() async throws {
+        try await EmailsTestsSetup.ensureInitialized()
+        
         do {
             _ = try await EmailsTestsSetup.client.messages.getById(id: "efe907e9-74ed-4113-a3e0-a3d41d914765")
         } catch {
             return
         }
         
-        XCTFail("Test should end with an error, but it didn't")
+        Issue.record("Test should end with an error, but it didn't")
     }
     
-    func testSearchNoCriteriaError() async throws {
+    @Test("Search with no criteria throws error")
+    func searchNoCriteriaError() async throws {
+        try await EmailsTestsSetup.ensureInitialized()
+        
         do {
             _ = try await EmailsTestsSetup.client.messages.search(server: EmailsTestsSetup.server, criteria: MessageSearchCriteria())
         } catch {
             return
         }
         
-        XCTFail("Test should end with an error, but it didn't")
+        Issue.record("Test should end with an error, but it didn't")
     }
     
-    func testSearchTimeoutErrorSuppressed() async throws {
+    @Test("Search timeout error suppressed returns empty results")
+    func searchTimeoutErrorSuppressed() async throws {
+        try await EmailsTestsSetup.ensureInitialized()
+        
         let result = try await EmailsTestsSetup.client.messages.search(server: EmailsTestsSetup.server,
                                                                        criteria: MessageSearchCriteria(sentFrom: "neverfound@example.com"),
                                                                        timeout: 1,
                                                                        errorOnTimeout: false).items
-        XCTAssertEqual(0, result.count)
+        #expect(result.count == 0)
     }
     
-    func testSearchBySentFrom() async throws {
-        let targetEmail = EmailsTestsSetup.emails[1]
+    @Test("Search emails by sent from address")
+    func searchBySentFrom() async throws {
+        let emails = try await EmailsTestsSetup.ensureInitialized()
+        
+        let targetEmail = emails[1]
         let result = try await EmailsTestsSetup.client.messages.search(server: EmailsTestsSetup.server, criteria: MessageSearchCriteria(sentFrom: targetEmail.from[0].email)).items
         
-        XCTAssertEqual(1, result.count)
-        XCTAssertEqual(targetEmail.to[0].email, result[0].to[0].email)
-        XCTAssertEqual(targetEmail.subject, result[0].subject)
+        #expect(result.count == 1)
+        #expect(result[0].to[0].email == targetEmail.to[0].email)
+        #expect(result[0].subject == targetEmail.subject)
     }
     
-    func testSearchByBody() async throws {
-        let targetEmail = EmailsTestsSetup.emails[1]
+    @Test("Search emails by body content")
+    func searchByBody() async throws {
+        let emails = try await EmailsTestsSetup.ensureInitialized()
+        
+        let targetEmail = emails[1]
         let uniqueString = targetEmail.subject.prefix(10)
         
         let result = try await EmailsTestsSetup.client.messages.search(server: EmailsTestsSetup.server, criteria: MessageSearchCriteria(body: "\(uniqueString) html")).items
         
-        XCTAssertEqual(1, result.count)
-        XCTAssertEqual(targetEmail.to[0].email, result[0].to[0].email)
-        XCTAssertEqual(targetEmail.subject, result[0].subject)
+        #expect(result.count == 1)
+        #expect(result[0].to[0].email == targetEmail.to[0].email)
+        #expect(result[0].subject == targetEmail.subject)
     }
     
-    func testSearchBySubjectTest() async throws {
-        let targetEmail = EmailsTestsSetup.emails[1]
+    @Test("Search emails by subject")
+    func searchBySubject() async throws {
+        let emails = try await EmailsTestsSetup.ensureInitialized()
+        
+        let targetEmail = emails[1]
         let uniqueString = String(targetEmail.subject.prefix(10))
         
         let result = try await EmailsTestsSetup.client.messages.search(server: EmailsTestsSetup.server, criteria: MessageSearchCriteria(subject: uniqueString)).items
         
-        XCTAssertEqual(1, result.count)
-        XCTAssertEqual(targetEmail.to[0].email, result[0].to[0].email)
-        XCTAssertEqual(targetEmail.subject, result[0].subject)
+        #expect(result.count == 1)
+        #expect(result[0].to[0].email == targetEmail.to[0].email)
+        #expect(result[0].subject == targetEmail.subject)
     }
     
-    func testSearchWithMatchAll() async throws {
-        let targetEmail = EmailsTestsSetup.emails[1]
+    @Test("Search with match all criteria")
+    func searchWithMatchAll() async throws {
+        let emails = try await EmailsTestsSetup.ensureInitialized()
+        
+        let targetEmail = emails[1]
         let uniqueString = String(targetEmail.subject.prefix(10))
         
         let result = try await EmailsTestsSetup.client.messages.search(server: EmailsTestsSetup.server,
@@ -138,11 +178,14 @@ final class EmailsTests: XCTestCase {
                                                                                                        body: "this is a link",
                                                                                                        match: .all)).items
         
-        XCTAssertEqual(1, result.count)
+        #expect(result.count == 1)
     }
     
-    func testSearchWithMatchAny() async throws {
-        let targetEmail = EmailsTestsSetup.emails[1]
+    @Test("Search with match any criteria")
+    func searchWithMatchAny() async throws {
+        let emails = try await EmailsTestsSetup.ensureInitialized()
+        
+        let targetEmail = emails[1]
         let uniqueString = String(targetEmail.subject.prefix(10))
         
         let result = try await EmailsTestsSetup.client.messages.search(server: EmailsTestsSetup.server,
@@ -150,76 +193,88 @@ final class EmailsTests: XCTestCase {
                                                                                                        body: "this is a link",
                                                                                                        match: .any)).items
         
-        XCTAssertEqual(5, result.count)
+        #expect(result.count == 5)
     }
     
-    func testSearchWithSpecialCharacters() async throws {
+    @Test("Search with special characters in subject")
+    func searchWithSpecialCharacters() async throws {
+        try await EmailsTestsSetup.ensureInitialized()
+        
         let result = try await EmailsTestsSetup.client.messages.search(server: EmailsTestsSetup.server, criteria: MessageSearchCriteria(subject: "Search with ellipsis … and emoji 👨🏿‍🚒")).items
-        XCTAssertEqual(0, result.count)
+        #expect(result.count == 0)
     }
     
-    func testSpamAnalysis() async throws {
-        let targetId = EmailsTestsSetup.emails[0].id
+    @Test("Run spam analysis on email")
+    func spamAnalysis() async throws {
+        let emails = try await EmailsTestsSetup.ensureInitialized()
+        
+        let targetId = emails[0].id
         let result = try await EmailsTestsSetup.client.analysis.spam(email: targetId)
         for rule in result.spamFilterResults.spamAssassin {
-            XCTAssertTrue(rule.rule.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false)
-            XCTAssertTrue(rule.description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false)
+            #expect(rule.rule.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false)
+            #expect(rule.description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false)
         }
     }
     
-    func testDeliverabilityReport() async throws {
-        let targetId = EmailsTestsSetup.emails[0].id
+    @Test("Generate deliverability report for email")
+    func deliverabilityReport() async throws {
+        let emails = try await EmailsTestsSetup.ensureInitialized()
+        
+        let targetId = emails[0].id
         let result = try await EmailsTestsSetup.client.analysis.deliverability(email: targetId)
         
-        XCTAssertNotNil(result)
+        #expect(result != nil)
         
-        XCTAssertNotNil(result.spf)
-        XCTAssertNotNil(result.spf?.result)
-        XCTAssertNotNil(result.spf?.tags)
+        #expect(result.spf != nil)
+        #expect(result.spf?.result != nil)
+        #expect(result.spf?.tags != nil)
         
-        XCTAssertNotNil(result.dkim)
+        #expect(result.dkim != nil)
         for dkim in result.dkim {
-            XCTAssertNotNil(dkim)
-            XCTAssertNotNil(dkim.result)
-            XCTAssertNotNil(dkim.tags)
+            #expect(dkim != nil)
+            #expect(dkim.result != nil)
+            #expect(dkim.tags != nil)
         }
         
-        XCTAssertNotNil(result.dmarc)
-        XCTAssertNotNil(result.dmarc?.rawValue)
-        XCTAssertNotNil(result.dmarc?.tags)
+        #expect(result.dmarc != nil)
+        #expect(result.dmarc?.rawValue != nil)
+        #expect(result.dmarc?.tags != nil)
         
-        XCTAssertNotNil(result.blockLists)
+        #expect(result.blockLists != nil)
         for blockList in result.blockLists {
-            XCTAssertTrue(blockList.id.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false)
-            XCTAssertTrue(blockList.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false)
-            XCTAssertNotNil(blockList.result)
+            #expect(blockList.id.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false)
+            #expect(blockList.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false)
+            #expect(blockList.result != nil)
         }
         
-        XCTAssertNotNil(result.content)
-        XCTAssertNotNil(result.content.embed)
-        XCTAssertNotNil(result.content.iframe)
-        XCTAssertNotNil(result.content.object)
-        XCTAssertNotNil(result.content.script)
-        XCTAssertNotNil(result.content.shortUrls)
-        XCTAssertNotNil(result.content.textSize)
-        XCTAssertNotNil(result.content.totalSize)
-        XCTAssertNotNil(result.content.missingAlt)
-        XCTAssertNotNil(result.content.missingListUnsubscribe)
+        #expect(result.content != nil)
+        #expect(result.content.embed != nil)
+        #expect(result.content.iframe != nil)
+        #expect(result.content.object != nil)
+        #expect(result.content.script != nil)
+        #expect(result.content.shortUrls != nil)
+        #expect(result.content.textSize != nil)
+        #expect(result.content.totalSize != nil)
+        #expect(result.content.missingAlt != nil)
+        #expect(result.content.missingListUnsubscribe != nil)
 
-        XCTAssertNotNil(result.dnsRecords)
-        XCTAssertNotNil(result.dnsRecords.a)
-        XCTAssertNotNil(result.dnsRecords.mx)
-        XCTAssertNotNil(result.dnsRecords.ptr)
+        #expect(result.dnsRecords != nil)
+        #expect(result.dnsRecords.a != nil)
+        #expect(result.dnsRecords.mx != nil)
+        #expect(result.dnsRecords.ptr != nil)
         
-        XCTAssertNotNil(result.spamAssassin)
+        #expect(result.spamAssassin != nil)
         for rule in result.spamAssassin.rules {
-            XCTAssertTrue(rule.rule.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false)
-            XCTAssertTrue(rule.description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false)
+            #expect(rule.rule.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false)
+            #expect(rule.description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false)
         }
     }
     
-    func testDelete() async throws {
-        let targetId = EmailsTestsSetup.emails[4].id
+    @Test("Delete email by ID")
+    func deleteEmail() async throws {
+        let emails = try await EmailsTestsSetup.ensureInitialized()
+        
+        let targetId = emails[4].id
         
         try await EmailsTestsSetup.client.messages.delete(id: targetId)
         
@@ -229,11 +284,12 @@ final class EmailsTests: XCTestCase {
             return
         }
         
-        XCTFail("Test should end with an error, but it didn't")
+        Issue.record("Test should end with an error, but it didn't")
     }
     
-    func testCreateSendText() async throws {
-        try XCTSkipIf(EmailsTestsSetup.verifiedDomain == nil, "Skipping test")
+    @Test("Create and send text email", .enabled(if: EmailsTestsSetup.verifiedDomain != nil))
+    func createSendText() async throws {
+        _ = try await EmailsTestsSetup.ensureInitialized()
         
         let subject = "New message"
         let message = try await EmailsTestsSetup.client.messages.create(server: EmailsTestsSetup.server, messageCreateOptions: MessageCreateOptions(to: "anything@\(EmailsTestsSetup.verifiedDomain ?? "")",
@@ -241,12 +297,13 @@ final class EmailsTests: XCTestCase {
                                                                                                                                                     subject: subject,
                                                                                                                                                     text: "This is a new email"))
         
-        XCTAssertFalse(message.id.isEmpty)
-        XCTAssertEqual(subject, message.subject)
+        #expect(!message.id.isEmpty)
+        #expect(message.subject == subject)
     }
     
-    func testCreateSendHtml() async throws {
-        try XCTSkipIf(EmailsTestsSetup.verifiedDomain == nil, "Skipping test")
+    @Test("Create and send HTML email", .enabled(if: EmailsTestsSetup.verifiedDomain != nil))
+    func createSendHtml() async throws {
+        _ = try await EmailsTestsSetup.ensureInitialized()
 
         let subject = "New HTML message"
         let message = try await EmailsTestsSetup.client.messages.create(server: EmailsTestsSetup.server, messageCreateOptions: MessageCreateOptions(to: "anything@\(EmailsTestsSetup.verifiedDomain ?? "")",
@@ -254,12 +311,13 @@ final class EmailsTests: XCTestCase {
                                                                                                                                                     subject: subject,
                                                                                                                                                     html: "<p>This is a new email.</p>"))
         
-        XCTAssertFalse(message.id.isEmpty)
-        XCTAssertEqual(subject, message.subject)
+        #expect(!message.id.isEmpty)
+        #expect(message.subject == subject)
     }
     
-    func testCreateWithCc() async throws {
-        try XCTSkipIf(EmailsTestsSetup.verifiedDomain == nil, "Skipping test")
+    @Test("Create email with CC recipient", .enabled(if: EmailsTestsSetup.verifiedDomain != nil))
+    func createWithCc() async throws {
+        _ = try await EmailsTestsSetup.ensureInitialized()
 
         let subject = "CC message"
         let ccRecipient = "someoneelse@\(EmailsTestsSetup.verifiedDomain ?? "")"
@@ -269,14 +327,15 @@ final class EmailsTests: XCTestCase {
                                                                                                                                                     html: "<p>This is a new email.</p>",
                                                                                                                                                     cc: ccRecipient))
         
-        XCTAssertFalse(message.id.isEmpty)
-        XCTAssertEqual(subject, message.subject)
-        XCTAssertEqual(1, message.cc.count)
-        XCTAssertEqual(ccRecipient, message.cc[0].email)
+        #expect(!message.id.isEmpty)
+        #expect(message.subject == subject)
+        #expect(message.cc.count == 1)
+        #expect(message.cc[0].email == ccRecipient)
     }
     
-    func testCreateSendWithAttachment() async throws {
-        try XCTSkipIf(EmailsTestsSetup.verifiedDomain == nil, "Skipping test")
+    @Test("Create and send email with attachment", .enabled(if: EmailsTestsSetup.verifiedDomain != nil))
+    func createSendWithAttachment() async throws {
+        _ = try await EmailsTestsSetup.ensureInitialized()
         
         let subject = "New message with attachment"
         let data = try Data(contentsOf: Bundle.module.url(forResource: "cat", withExtension: "png")!)
@@ -290,102 +349,109 @@ final class EmailsTests: XCTestCase {
                                                                                                                                                     html: "<p>This is a new email.</p>",
                                                                                                                                                     attachments: [attachment]))
         
-        XCTAssertEqual(1, message.attachments.count)
+        #expect(message.attachments.count == 1)
         let file1 = message.attachments[0]
-        XCTAssertNotNil(file1.id)
-        XCTAssertEqual(82138, file1.length)
-        XCTAssertNotNil(file1.url)
-        XCTAssertEqual("cat.png", file1.fileName)
-        XCTAssertEqual("image/png", file1.contentType)
+        #expect(file1.id != nil)
+        #expect(file1.length == 82138)
+        #expect(file1.url != nil)
+        #expect(file1.fileName == "cat.png")
+        #expect(file1.contentType == "image/png")
     }
     
-    func testForwardText() async throws {
-        try XCTSkipIf(EmailsTestsSetup.verifiedDomain == nil, "Skipping test")
+    @Test("Forward email as text", .enabled(if: EmailsTestsSetup.verifiedDomain != nil))
+    func forwardText() async throws {
+        let emails = try await EmailsTestsSetup.ensureInitialized()
         
         let body = "Forwarded message"
-        let targetEmail = EmailsTestsSetup.emails[0]
+        let targetEmail = emails[0]
         
         let message = try await EmailsTestsSetup.client.messages.forward(id: targetEmail.id, messageForwardOptions: MessageForwardOptions(to: "anything@\(EmailsTestsSetup.verifiedDomain ?? "")",
                                                                                                                                           text: body))
         
-        XCTAssertFalse(message.id.isEmpty)
-        XCTAssertTrue(message.text.body?.contains(body) == true)
+        #expect(!message.id.isEmpty)
+        #expect(message.text.body?.contains(body) == true)
     }
     
-    func testForwardHtml() async throws {
-        try XCTSkipIf(EmailsTestsSetup.verifiedDomain == nil, "Skipping test")
+    @Test("Forward email as HTML", .enabled(if: EmailsTestsSetup.verifiedDomain != nil))
+    func forwardHtml() async throws {
+        let emails = try await EmailsTestsSetup.ensureInitialized()
         
         let body = "<p>Forwarded <strong>HTML</strong> message.</p>"
-        let targetEmail = EmailsTestsSetup.emails[0]
+        let targetEmail = emails[0]
         
         let message = try await EmailsTestsSetup.client.messages.forward(id: targetEmail.id, messageForwardOptions: MessageForwardOptions(to: "anything@\(EmailsTestsSetup.verifiedDomain ?? "")",
                                                                                                                                           html: body))
         
-        XCTAssertFalse(message.id.isEmpty)
-        XCTAssertTrue(message.html.body?.contains(body) == true)
+        #expect(!message.id.isEmpty)
+        #expect(message.html.body?.contains(body) == true)
     }
     
-    func testForwardWithCc() async throws {
-        try XCTSkipIf(EmailsTestsSetup.verifiedDomain == nil, "Skipping test")
+    @Test("Forward email with CC recipient", .enabled(if: EmailsTestsSetup.verifiedDomain != nil))
+    func forwardWithCc() async throws {
+        let emails = try await EmailsTestsSetup.ensureInitialized()
 
         let body = "<p>Forwarded <strong>HTML</strong> message.</p>"
-        let targetEmail = EmailsTestsSetup.emails[0]
+        let targetEmail = emails[0]
         let ccRecipient = "someoneelse@\(EmailsTestsSetup.verifiedDomain ?? "")"
         
         let message = try await EmailsTestsSetup.client.messages.forward(id: targetEmail.id, messageForwardOptions: MessageForwardOptions(to: "forwardcc@\(EmailsTestsSetup.verifiedDomain ?? "")",
                                                                                                                                           html: body,
                                                                                                                                           cc: ccRecipient))
         
-        XCTAssertFalse(message.id.isEmpty)
-        XCTAssertTrue(message.html.body?.contains(body) == true)
-        XCTAssertEqual(1, message.cc.count)
-        XCTAssertEqual(ccRecipient, message.cc[0].email)
+        #expect(!message.id.isEmpty)
+        #expect(message.html.body?.contains(body) == true)
+        #expect(message.cc.count == 1)
+        #expect(message.cc[0].email == ccRecipient)
     }
     
-    func testReplyText() async throws {
-        try XCTSkipIf(EmailsTestsSetup.verifiedDomain == nil, "Skipping test")
+    @Test("Reply to email as text", .enabled(if: EmailsTestsSetup.verifiedDomain != nil))
+    func replyText() async throws {
+        let emails = try await EmailsTestsSetup.ensureInitialized()
         
         let body = "Reply message"
-        let targetEmail = EmailsTestsSetup.emails[0]
+        let targetEmail = emails[0]
         
         let message = try await EmailsTestsSetup.client.messages.reply(id: targetEmail.id, messageReplyOptions: MessageReplyOptions(text: body))
         
-        XCTAssertFalse(message.id.isEmpty)
-        XCTAssertTrue(message.text.body!.contains(body))
+        #expect(!message.id.isEmpty)
+        #expect(message.text.body!.contains(body))
     }
     
-    func testReplyHtml() async throws {
-        try XCTSkipIf(EmailsTestsSetup.verifiedDomain == nil, "Skipping test")
+    @Test("Reply to email as HTML", .enabled(if: EmailsTestsSetup.verifiedDomain != nil))
+    func replyHtml() async throws {
+        let emails = try await EmailsTestsSetup.ensureInitialized()
         
         let body = "<p>Reply <strong>HTML</strong> message.</p>"
-        let targetEmail = EmailsTestsSetup.emails[0]
+        let targetEmail = emails[0]
         
         let message = try await EmailsTestsSetup.client.messages.reply(id: targetEmail.id, messageReplyOptions: MessageReplyOptions(html: body))
         
-        XCTAssertFalse(message.id.isEmpty)
-        XCTAssertTrue(message.html.body?.contains(body) == true)
+        #expect(!message.id.isEmpty)
+        #expect(message.html.body?.contains(body) == true)
     }
     
-    func testReplyWithCc() async throws {
-        try XCTSkipIf(EmailsTestsSetup.verifiedDomain == nil, "Skipping test")
+    @Test("Reply to email with CC recipient", .enabled(if: EmailsTestsSetup.verifiedDomain != nil))
+    func replyWithCc() async throws {
+        let emails = try await EmailsTestsSetup.ensureInitialized()
 
         let body = "Reply CC Message"
-        let targetEmail = EmailsTestsSetup.emails[0]
+        let targetEmail = emails[0]
         let ccRecipient = "someoneelse@\(EmailsTestsSetup.verifiedDomain ?? "")"
         
         let message = try await EmailsTestsSetup.client.messages.reply(id: targetEmail.id, messageReplyOptions: MessageReplyOptions(html: body, cc: ccRecipient))
         
-        XCTAssertFalse(message.id.isEmpty)
-        XCTAssertTrue(message.html.body?.contains(body) == true)
-        XCTAssertEqual(1, message.cc.count)
-        XCTAssertEqual(ccRecipient, message.cc[0].email)
+        #expect(!message.id.isEmpty)
+        #expect(message.html.body?.contains(body) == true)
+        #expect(message.cc.count == 1)
+        #expect(message.cc[0].email == ccRecipient)
     }
     
-    func testReplyWithAttachment() async throws {
-        try XCTSkipIf(EmailsTestsSetup.verifiedDomain == nil, "Skipping test")
+    @Test("Reply to email with attachment", .enabled(if: EmailsTestsSetup.verifiedDomain != nil))
+    func replyWithAttachment() async throws {
+        let emails = try await EmailsTestsSetup.ensureInitialized()
         
         let body = "<p>Reply with attachment.</p>"
-        let targetEmail = EmailsTestsSetup.emails[0]
+        let targetEmail = emails[0]
         
         let data = try Data(contentsOf: Bundle.module.url(forResource: "cat", withExtension: "png")!)
         let attachment = MessageAttachmentOptions(contentType: "image/png",
@@ -394,19 +460,19 @@ final class EmailsTests: XCTestCase {
         
         let message = try await EmailsTestsSetup.client.messages.reply(id: targetEmail.id, messageReplyOptions: MessageReplyOptions(html: body,
                                                                                                                                     attachments: [attachment]))
-        XCTAssertEqual(1, message.attachments.count)
+        #expect(message.attachments.count == 1)
         let file1 = message.attachments[0]
-        XCTAssertNotNil(file1.id)
-        XCTAssertEqual(82138, file1.length)
-        XCTAssertNotNil(file1.url)
-        XCTAssertEqual("cat.png", file1.fileName)
-        XCTAssertEqual("image/png", file1.contentType)
+        #expect(file1.id != nil)
+        #expect(file1.length == 82138)
+        #expect(file1.url != nil)
+        #expect(file1.fileName == "cat.png")
+        #expect(file1.contentType == "image/png")
     }
     
     private func validateEmailSummary(email: MessageSummary) {
         validateMetadata(email: email)
-        XCTAssertTrue(email.summary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false)
-        XCTAssertEqual(2, email.attachments)
+        #expect(email.summary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false)
+        #expect(email.attachments == 2)
     }
     
     private func validateMetadata(email: Message) {
@@ -424,15 +490,15 @@ final class EmailsTests: XCTestCase {
     }
     
     private func validateMetadata(email: MessageSummary) {
-        XCTAssertEqual("Email", email.type)
-        XCTAssertEqual(1, email.from.count)
-        XCTAssertEqual(1, email.to.count)
-        XCTAssertTrue(email.from[0].email?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false)
-        XCTAssertTrue(email.from[0].name?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false)
-        XCTAssertTrue(email.to[0].email?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false)
-        XCTAssertTrue(email.to[0].name?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false)
-        XCTAssertTrue(email.subject.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false)
-        XCTAssertLessThanOrEqual(Date.now.timeIntervalSince(email.received) / 3600, 1)
+        #expect(email.type == "Email")
+        #expect(email.from.count == 1)
+        #expect(email.to.count == 1)
+        #expect(email.from[0].email?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false)
+        #expect(email.from[0].name?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false)
+        #expect(email.to[0].email?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false)
+        #expect(email.to[0].name?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false)
+        #expect(email.subject.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false)
+        #expect(Date.now.timeIntervalSince(email.received) / 3600 <= 1)
     }
     
     private func validateEmail(email: Message) {
@@ -441,60 +507,60 @@ final class EmailsTests: XCTestCase {
         validateHtml(email: email)
         validateText(email: email)
         
-        XCTAssertNotNil(email.metadata.ehlo)
-        XCTAssertNotNil(email.metadata.mailFrom)
-        XCTAssertEqual(1, email.metadata.rcptTo.count)
+        #expect(email.metadata.ehlo != nil)
+        #expect(email.metadata.mailFrom != nil)
+        #expect(email.metadata.rcptTo.count == 1)
     }
     
     private func validateAttachmentMetadata(email: Message) {
-        XCTAssertEqual(2, email.attachments.count)
+        #expect(email.attachments.count == 2)
         
         let file1 = email.attachments[0]
-        XCTAssertNotNil(file1.id)
-        XCTAssertEqual(82138, file1.length)
-        XCTAssertNotNil(file1.url)
-        XCTAssertEqual("cat.png", file1.fileName)
-        XCTAssertEqual("image/png", file1.contentType)
+        #expect(file1.id != nil)
+        #expect(file1.length == 82138)
+        #expect(file1.url != nil)
+        #expect(file1.fileName == "cat.png")
+        #expect(file1.contentType == "image/png")
         
         let file2 = email.attachments[1]
-        XCTAssertNotNil(file2.id)
-        XCTAssertEqual(212080, file2.length)
-        XCTAssertNotNil(file2.url)
-        XCTAssertEqual("dog.png", file2.fileName)
-        XCTAssertEqual("image/png", file2.contentType)
+        #expect(file2.id != nil)
+        #expect(file2.length == 212080)
+        #expect(file2.url != nil)
+        #expect(file2.fileName == "dog.png")
+        #expect(file2.contentType == "image/png")
     }
     
     private func validateHtml(email: Message) {
-        XCTAssertTrue(email.html.body?.starts(with: "<div dir=\"ltr\">") == true)
+        #expect(email.html.body?.starts(with: "<div dir=\"ltr\">") == true)
         
-        XCTAssertEqual(3, email.html.links.count)
-        XCTAssertEqual("https://mailosaur.com/", email.html.links[0].href)
-        XCTAssertEqual("mailosaur", email.html.links[0].text)
-        XCTAssertEqual("https://mailosaur.com/", email.html.links[1].href)
-        XCTAssertNil(email.html.links[1].text)
-        XCTAssertEqual("http://invalid/", email.html.links[2].href)
-        XCTAssertEqual("invalid", email.html.links[2].text)
+        #expect(email.html.links.count == 3)
+        #expect(email.html.links[0].href == "https://mailosaur.com/")
+        #expect(email.html.links[0].text == "mailosaur")
+        #expect(email.html.links[1].href == "https://mailosaur.com/")
+        #expect(email.html.links[1].text == nil)
+        #expect(email.html.links[2].href == "http://invalid/")
+        #expect(email.html.links[2].text == "invalid")
         
-        XCTAssertEqual(2, email.html.codes.count)
-        XCTAssertEqual("123456", email.html.codes[0].value)
-        XCTAssertEqual("G3H1Y2", email.html.codes[1].value)
+        #expect(email.html.codes.count == 2)
+        #expect(email.html.codes[0].value == "123456")
+        #expect(email.html.codes[1].value == "G3H1Y2")
         
-        XCTAssertTrue(email.html.images?[1].src.starts(with: "cid:") ?? false)
-        XCTAssertEqual("Inline image 1", email.html.images?[1].alt)
+        #expect(email.html.images?[1].src.starts(with: "cid:") ?? false)
+        #expect(email.html.images?[1].alt == "Inline image 1")
     }
     
     private func validateText(email: Message) {
-        XCTAssertTrue(email.text.body?.starts(with: "this is a test") == true)
+        #expect(email.text.body?.starts(with: "this is a test") == true)
         
-        XCTAssertEqual(2, email.text.links.count)
-        XCTAssertEqual(email.text.links[0].text, email.text.links[0].href)
-        XCTAssertEqual("https://mailosaur.com/", email.text.links[0].text)
-        XCTAssertEqual(email.text.links[1].text, email.text.links[1].href)
-        XCTAssertEqual("https://mailosaur.com/", email.text.links[1].text)
+        #expect(email.text.links.count == 2)
+        #expect(email.text.links[0].text == email.text.links[0].href)
+        #expect(email.text.links[0].text == "https://mailosaur.com/")
+        #expect(email.text.links[1].text == email.text.links[1].href)
+        #expect(email.text.links[1].text == "https://mailosaur.com/")
         
-        XCTAssertEqual(2, email.text.codes.count)
-        XCTAssertEqual("654321", email.text.codes[0].value)
-        XCTAssertEqual("5H0Y2", email.text.codes[1].value)
+        #expect(email.text.codes.count == 2)
+        #expect(email.text.codes[0].value == "654321")
+        #expect(email.text.codes[1].value == "5H0Y2")
     }
     
     private func validateHeaders(email: Message) {
