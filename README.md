@@ -15,6 +15,8 @@ This guide provides several key sections:
     - [Install with Swift Package Manager](#install-with-swift-package-manager)
     - [Install with Cocoapods](#install-with-cocoapods)
     - [Install with Carthage](#install-with-carthage)
+    - [Set your API key](#set-your-api-key)
+    - [Create your code](#create-your-code)
     - [API Reference](#api-reference)
   - [Creating an account](#creating-an-account)
   - [Test email addresses with Mailosaur](#test-email-addresses-with-mailosaur)
@@ -88,11 +90,22 @@ cd ../../..
 carthage build
 ```
 
-Then import the library into your code. The value for `YOUR_API_KEY` is covered in the next step ([creating an account](#creating-an-account)):
+### Set your API key
+
+Get your API key from the Mailosaur Dashboard and set it as an environment variable:
+
+```sh
+export MAILOSAUR_API_KEY='your-api-key-here'
+```
+
+### Create your code
+
+Then import the library into your code:
 
 ```swift
 import Mailosaur
-let mailosaur = MailosaurClient(config: MailosaurConfig(apiKey: "YOUR_API_KEY"))
+
+let mailosaur = try MailosaurClient()
 ```
 
 ### API Reference
@@ -133,7 +146,7 @@ Here's how it works:
 In automated tests you will want to wait for a new email to arrive. This library makes that easy with the `messages.get` method. Here's how you use it:
 
 ```swift
-let mailosaur = MailosaurClient(config: MailosaurConfig(apiKey: "YOUR_API_KEY"))
+let mailosaur = try MailosaurClient()
 
 // See https://mailosaur.com/app/project/api
 let serverId = "abc123"
@@ -146,7 +159,7 @@ print(message.subject) // "Hello, World!!"
 
 ### What is this code doing?
 
-1. Sets up an instance of `MailosaurClient` with your API key.
+1. Sets up an instance of `MailosaurClient` using the `MAILOSAUR_API_KEY` environment variable.
 2. Waits for an email to arrive at the server with ID `abc123`.
 3. Outputs the subject line of the email.
 
@@ -173,7 +186,7 @@ let message =  try await mailosaur.messages.get(server: serverId,
 If your account has [SMS testing](https://mailosaur.com/sms-testing/) enabled, you can reserve phone numbers to test with, then use the Mailosaur API in a very similar way to when testing email:
 
 ```swift
-let mailosaur = MailosaurClient(config: MailosaurConfig(apiKey: "YOUR_API_KEY"))
+let mailosaur = try MailosaurClient()
 let serverId = "abc123"
 
 let sms =  try await mailosaur.messages.get(server: serverId,
