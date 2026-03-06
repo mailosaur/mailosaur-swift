@@ -95,6 +95,18 @@ public class MailosaurClient {
     public init(config: MailosaurConfig) {
         self.config = config
     }
+
+    public convenience init(baseUrl: URL? = nil) throws {
+        guard let apiKey = ProcessInfo.processInfo.environment["MAILOSAUR_API_KEY"],
+              !apiKey.isEmpty else {
+            throw MailosaurError.missingApiKey
+        }
+        if let baseUrl = baseUrl {
+            self.init(config: MailosaurConfig(apiKey: apiKey, baseUrl: baseUrl))
+        } else {
+            self.init(config: MailosaurConfig(apiKey: apiKey))
+        }
+    }
     
     public func performRequest(path: String, method: Method = .get, requestType: RequestType = .json, query: [URLQueryItem]? = nil, params: Encodable? = nil) async -> Result<(Data?, HTTPURLResponse?), Error> {
         do {
