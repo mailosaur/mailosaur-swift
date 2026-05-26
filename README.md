@@ -2,7 +2,7 @@
 
 Mailosaur lets you automate email and SMS tests as part of software development and QA.
 
-- **Unlimited test email addresses for all** - every account gives users an unlimited number of test email addresses to test with.
+- **Unlimited test email addresses for all**  - every account gives users an unlimited number of test email addresses to test with.
 - **End-to-end (e2e) email and SMS testing** Allowing you to set up end-to-end tests for password reset emails, account verification processes and MFA/one-time passcodes sent via text message.
 - **Fake SMTP servers** Mailosaur also provides dummy SMTP servers to test with; allowing you to catch email in staging environments - preventing email being sent to customers by mistake.
 
@@ -12,9 +12,7 @@ This guide provides several key sections:
 
 - [Mailosaur - Swift library · ](#mailosaur---swift-library--)
   - [Get Started](#get-started)
-    - [Install with Swift Package Manager](#install-with-swift-package-manager)
-    - [Install with Cocoapods](#install-with-cocoapods)
-    - [Install with Carthage](#install-with-carthage)
+    - [Installation](#installation)
     - [Set your API key](#set-your-api-key)
     - [Create your code](#create-your-code)
     - [API Reference](#api-reference)
@@ -43,13 +41,13 @@ You can find the full [Mailosaur documentation](https://mailosaur.com/docs/) on 
 
 If you get stuck, just contact us at support@mailosaur.com.
 
-### Install with Swift Package Manager
+### Installation
 
-To use SwiftPM, you should use Xcode 11 to open your project. Click `File` -> `Swift Packages` -> `Add Package Dependency`, enter this repo's URL (`https://github.com/mailosaur/mailosaur-swift`).
+Install the Mailosaur Swift library using Swift Package Manager. In Xcode, click `File` -> `Add Packages…`, then enter this repo's URL (`https://github.com/mailosaur/mailosaur-swift`).
 
-Alternatively, update your Package.swift file (ensure you enter the latest version number):
+Alternatively, add Mailosaur to the `dependencies` in your `Package.swift` file (ensure you use the latest version number):
 
-```
+```swift
 let package = Package(
     dependencies: [
         .package(url: "https://github.com/mailosaur/mailosaur-swift", from: "1.x.x")
@@ -58,36 +56,10 @@ let package = Package(
 )
 ```
 
-### Install with Cocoapods
-
-To install Mailosaur, simply add the following line to your Podfile (ensure the version number is correct):
+You can also install Mailosaur via CocoaPods by adding the following line to your `Podfile`:
 
 ```rb
 pod 'Mailosaur', '~> 1.1'
-```
-
-Then, run the following command:
-
-```sh
-$ pod update
-```
-
-### Install with Carthage
-
-Add the following dependency to your Cartfile
-
-```sh
-github "mailosaur/mailosaur-swift"
-```
-
-Then, run the following commands:
-
-```sh
-carthage update --platform ios
-cd ./Carthage/Checkouts/Mailosaur
-swift package generate-xcodeproj
-cd ../../..
-carthage build
 ```
 
 ### Set your API key
@@ -100,7 +72,7 @@ export MAILOSAUR_API_KEY='your-api-key-here'
 
 ### Create your code
 
-Then import the library into your code:
+Then import the library and create a client:
 
 ```swift
 import Mailosaur
@@ -113,7 +85,7 @@ let mailosaur = try MailosaurClient()
 This library is powered by the Mailosaur [email & SMS testing API](https://mailosaur.com/docs/api/). You can easily check out the API itself by looking at our [API reference documentation](https://mailosaur.com/docs/api/) or via our Postman or Insomnia collections:
 
 [![Run in Postman](https://run.pstmn.io/button.svg)](https://app.getpostman.com/run-collection/6961255-6cc72dff-f576-451a-9023-b82dec84f95d?action=collection%2Ffork&collection-url=entityId%3D6961255-6cc72dff-f576-451a-9023-b82dec84f95d%26entityType%3Dcollection%26workspaceId%3D386a4af1-4293-4197-8f40-0eb49f831325)
-[![Run in Insomnia}](https://insomnia.rest/images/run.svg)](https://insomnia.rest/run/?label=Mailosaur&uri=https%3A%2F%2Fmailosaur.com%2Finsomnia.json)
+ [![Run in Insomnia](https://insomnia.rest/images/run.svg)](https://insomnia.rest/run/?label=Mailosaur&uri=https%3A%2F%2Fmailosaur.com%2Finsomnia.json)
 
 ## Creating an account
 
@@ -131,52 +103,58 @@ Mailosaur gives you an **unlimited number of test email addresses** - with no se
 
 Here's how it works:
 
-- When you create an account, you are given a server.
-- Every server has its own **Server Domain** name (e.g. `abc123.mailosaur.net`)
-- Any email address that ends with `@{YOUR_SERVER_DOMAIN}` will work with Mailosaur without any special setup. For example:
-  - `build-423@abc123.mailosaur.net`
-  - `john.smith@abc123.mailosaur.net`
-  - `rAnDoM63423@abc123.mailosaur.net`
-- You can create more servers when you need them. Each one will have its own domain name.
+* When you create an account, you are given a server.
+* Every server has its own **Server Domain** name (e.g. `abc123.mailosaur.net`)
+* Any email address that ends with `@{YOUR_SERVER_DOMAIN}` will work with Mailosaur without any special setup. For example:
+  * `build-423@abc123.mailosaur.net`
+  * `john.smith@abc123.mailosaur.net`
+  * `rAnDoM63423@abc123.mailosaur.net`
+* You can create more servers when you need them. Each one will have its own domain name.
 
-**\*Can't use test email addresses?** You can also [use SMTP to test email](https://mailosaur.com/docs/email-testing/sending-to-mailosaur/#sending-via-smtp). By connecting your product or website to Mailosaur via SMTP, Mailosaur will catch all email your application sends, regardless of the email address.\*
+***Can't use test email addresses?** You can also [use SMTP to test email](https://mailosaur.com/docs/email-testing/sending-to-mailosaur/#sending-via-smtp). By connecting your product or website to Mailosaur via SMTP, Mailosaur will catch all email your application sends, regardless of the email address.*
 
 ## Find an email
 
 In automated tests you will want to wait for a new email to arrive. This library makes that easy with the `messages.get` method. Here's how you use it:
 
 ```swift
+import Mailosaur
+
 let mailosaur = try MailosaurClient()
 
 // See https://mailosaur.com/app/project/api
 let serverId = "abc123"
 let serverDomain = "abc123.mailosaur.net"
 
-let message =  try await mailosaur.messages.get(server: serverId,
-                                                criteria: MessageSearchCriteria(sentTo:  serverDomain))
-print(message.subject) // "Hello, World!!"
+let message = try await mailosaur.messages.get(
+    server: serverId,
+    criteria: MessageSearchCriteria(sentTo: "anything@\(serverDomain)")
+)
+
+print(message.subject) // "Hello world!"
 ```
 
 ### What is this code doing?
 
-1. Sets up an instance of `MailosaurClient` using the `MAILOSAUR_API_KEY` environment variable.
+1. Sets up an instance of `MailosaurClient`, reading the API key from the `MAILOSAUR_API_KEY` environment variable.
 2. Waits for an email to arrive at the server with ID `abc123`.
 3. Outputs the subject line of the email.
 
 ### My email wasn't found
 
-First, check that the email you sent is visible in the [Mailosaur Dashboard](https://mailosaur.com/api/project/messages).
+First, check that the email you sent is visible in the [Mailosaur Dashboard](https://mailosaur.com/app/project/messages).
 
 If it is, the likely reason is that by default, `messages.get` only searches emails received by Mailosaur in the last 1 hour. You can override this behavior (see the `receivedAfter` option below), however we only recommend doing this during setup, as your tests will generally run faster with the default settings:
 
 ```swift
-let formatter = DateFormatter()
-formatter.dateFormat = "yyyy/MM/dd HH:mm"
-let newDate = formatter.date(from: "2023/01/01 00:00")
+// Override receivedAfter to search all messages since Jan 1st
+let receivedAfter = Calendar.current.date(from: DateComponents(year: 2021, month: 1, day: 1))
 
-let message =  try await mailosaur.messages.get(server: serverId,
-                                                criteria: MessageSearchCriteria(sentTo:  "anything@\(serverDomain)"),
-                                                receivedAfter: newDate) // Override receivedAfter to search all messages since Jan 1st
+let message = try await mailosaur.messages.get(
+    server: serverId,
+    criteria: MessageSearchCriteria(sentTo: "anything@\(serverDomain)"),
+    receivedAfter: receivedAfter
+)
 ```
 
 ## Find an SMS message
@@ -186,11 +164,17 @@ let message =  try await mailosaur.messages.get(server: serverId,
 If your account has [SMS testing](https://mailosaur.com/sms-testing/) enabled, you can reserve phone numbers to test with, then use the Mailosaur API in a very similar way to when testing email:
 
 ```swift
+import Mailosaur
+
 let mailosaur = try MailosaurClient()
+
 let serverId = "abc123"
 
-let sms =  try await mailosaur.messages.get(server: serverId,
-                                            criteria: MessageSearchCriteria(sentTo:  "4471235554444"))
+let sms = try await mailosaur.messages.get(
+    server: serverId,
+    criteria: MessageSearchCriteria(sentTo: "4471235554444")
+)
+
 print(sms.text.body)
 ```
 
@@ -217,7 +201,7 @@ print(message.text.body) // "Your access code is 243546."
 
 let regex = /(?<code>[0-9]{6})/
 if let body = message.text.body, let match = body.firstMatch(of: regex) {
-    print(match.code)
+    print(match.code) // "243546"
 }
 ```
 
@@ -233,17 +217,23 @@ print(message.html.body) // "<html><head ..."
 
 ### Working with HTML using SwiftSoup
 
-If you need to traverse the HTML content of an email. For example, finding an element via a CSS selector, you can use the [SwiftSoup](https://github.com/scinfu/SwiftSoup) library.
+If you need to traverse the HTML content of an email — for example, finding an element via a CSS selector — you can use the [SwiftSoup](https://github.com/scinfu/SwiftSoup) library.
+
+Add SwiftSoup to your `Package.swift` dependencies:
+
+```swift
+.package(url: "https://github.com/scinfu/SwiftSoup.git", from: "2.6.0")
+```
 
 ```swift
 import SwiftSoup
 
 // ...
 
-let dom = try SwiftSoup.parse(message.html.body!)
+let dom = try SwiftSoup.parse(message.html.body ?? "")
 
 let el = try dom.select(".verification-code")
-let verificationCode = try el.text()
+let verificationCode = try el.text() // "542163"
 ```
 
 [Read more](https://mailosaur.com/docs/test-cases/html-content/)
@@ -259,12 +249,12 @@ Each link has a text property, representing the display text of the hyperlink wi
 print(message.html.links.count) // 2
 
 if let firstLink = message.html.links.first {
-    print(firstLink.text) // "Google Search"
+    print(firstLink.text ?? "") // "Google Search"
     print(firstLink.href) // "https://www.google.com/"
 }
 ```
 
-**Important:** To ensure you always have valid emails. Mailosaur only extracts links that have been correctly marked up with `<a>` or `<area>` tags.
+**Important:** To ensure you always have valid emails, Mailosaur only extracts links that have been correctly marked up with `<a>` or `<area>` tags.
 
 ### Links in plain text (including SMS messages)
 
@@ -272,10 +262,9 @@ Mailosaur auto-detects links in plain text content too, which is especially usef
 
 ```swift
 // How many links?
-    print(message.text.links.count) // 2
+print(message.text.links.count) // 2
 
 if let firstLink = message.text.links.first {
-    print(firstLink.text) // "Google Search"
     print(firstLink.href) // "https://www.google.com/"
 }
 ```
@@ -302,7 +291,7 @@ The `length` property returns the size of the attached file (in bytes):
 
 ```swift
 if let firstAttachment = message.attachments.first {
-    print(firstAttachment.length) // 4028
+    print(firstAttachment.length ?? 0) // 4028
 }
 ```
 
@@ -310,10 +299,11 @@ if let firstAttachment = message.attachments.first {
 
 ```swift
 if let firstAttachment = message.attachments.first {
-    let fileBytes = try mailosaur.files.getAttachment(id: firstAttachment.id)
+    let fileBytes = try await mailosaur.files.getAttachment(id: firstAttachment.id)
 
-    let path = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent(firstAttachment.fileName)
-    try fileBytes.write(to: path)
+    let documentsUrl = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+    let fileUrl = documentsUrl.appendingPathComponent(firstAttachment.fileName)
+    try fileBytes.write(to: fileUrl)
 }
 ```
 
@@ -323,7 +313,7 @@ The `html.images` property of a message contains an array of images found within
 
 ```swift
 // How many images in the email?
-print(message.html.images.count)
+print(message.html.images?.count ?? 0) // 1
 ```
 
 ### Remotely-hosted images
@@ -333,7 +323,7 @@ Emails will often contain many images that are hosted elsewhere, such as on your
 All images should have an alternative text description, which can be checked using the `alt` attribute.
 
 ```swift
-if let image = message.html.images.first {
+if let image = message.html.images?.first {
     print(image.alt) // "Hot air balloon"
 }
 ```
@@ -345,11 +335,11 @@ A web beacon is a small image that can be used to track whether an email has bee
 Because a web beacon is simply another form of remotely-hosted image, you can use the `src` attribute to perform an HTTP request to that address:
 
 ```swift
-if let image = message.html.images?.first {
+if let image = message.html.images?.first, let url = URL(string: image.src) {
     print(image.src) // "https://example.com/s.png?abc123"
 
     // Make an HTTP call to trigger the web beacon
-    let (_, response) = try await URLSession.shared.data(for: URLRequest(url: URL(string: image.src)!))
+    let (_, response) = try await URLSession.shared.data(for: URLRequest(url: url))
     if let res = response as? HTTPURLResponse {
         print(res.statusCode) // 200
     }
@@ -367,8 +357,8 @@ print(result.score) // 0.5
 
 for rule in result.spamFilterResults.spamAssassin {
     print(rule.rule)
-    print(rule.score)
     print(rule.description)
+    print(rule.score)
 }
 ```
 
