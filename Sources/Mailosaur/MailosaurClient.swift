@@ -7,6 +7,11 @@
 
 import Foundation
 
+/// The Mailosaur client — the main entry point to the Mailosaur API. Construct an instance with
+/// a ``MailosaurConfig`` containing your API key (or set the `MAILOSAUR_API_KEY` environment
+/// variable and use the throwing convenience initializer), then use the operations namespaces
+/// (``messages``, ``servers``, ``files``, ``devices``, ``analysis``, ``previews``, ``usage``) to
+/// automate email and SMS testing.
 public class MailosaurClient {
     private let config: MailosaurConfig
     private let defaultBaseUrl = URL(string: "https://mailosaur.com/")!
@@ -70,32 +75,46 @@ public class MailosaurClient {
     
     struct None: Decodable { }
     
+    /// Operations for analyzing email content and deliverability, including spam scoring.
     public lazy var analysis: Analysis = {
         Analysis(client: self)
     } ()
+    /// Operations for managing virtual security devices and retrieving their one-time passwords.
     public lazy var devices: Devices = {
         Devices(client: self)
     } ()
+    /// Operations for downloading attachments, EML source, and email preview screenshots.
     public lazy var files: Files = {
         Files(client: self)
     } ()
+    /// Operations for finding, retrieving, creating, and managing email and SMS messages.
     public lazy var messages: Messages = {
         Messages(client: self)
     } ()
+    /// Operations for creating and managing your Mailosaur servers (virtual inboxes).
     public lazy var servers: Servers = {
         Servers(client: self)
     } ()
+    /// Operations for inspecting account usage limits and recent transactional usage.
     public lazy var usage: Usage = {
         Usage(client: self)
     } ()
+    /// Operations for discovering the email clients available for generating email previews.
     public lazy var previews: Previews = {
         Previews(client: self)
     } ()
-    
+
+    /// Creates an instance of the Mailosaur client using an explicit configuration.
+    ///
+    /// - Parameter config: The configuration containing the API key and, optionally, an override base URL.
     public init(config: MailosaurConfig) {
         self.config = config
     }
 
+    /// Creates an instance of the Mailosaur client using the `MAILOSAUR_API_KEY` environment variable.
+    ///
+    /// - Parameter baseUrl: Optionally overrides the base URL of the Mailosaur service.
+    /// - Throws: `MailosaurError.missingApiKey` if the `MAILOSAUR_API_KEY` environment variable is not set or is empty.
     public convenience init(baseUrl: URL? = nil) throws {
         guard let apiKey = ProcessInfo.processInfo.environment["MAILOSAUR_API_KEY"],
               !apiKey.isEmpty else {
