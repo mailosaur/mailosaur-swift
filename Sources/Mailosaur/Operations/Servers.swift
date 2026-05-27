@@ -7,6 +7,9 @@
 
 import Foundation
 
+/// Operations for creating and managing your Mailosaur servers — the virtual inboxes that
+/// group your tests together, each with its own domain and SMTP/POP3/IMAP credentials.
+/// Accessed via `client.servers`.
 public class Servers {
     // Must be weak to prevent a retain cycle
     private weak var client: MailosaurClient?
@@ -16,12 +19,16 @@ public class Servers {
     }
     
     /// Returns a list of your virtual servers. Servers are returned sorted in alphabetical order.
+    ///
+    /// - Returns: A `Result` containing a ``ServerListResult`` of your servers on success, or an `Error` on failure.
     public func listResult() async -> Result<ServerListResult, Error> {
         guard let client = self.client else { return .failure(MailosaurError.clientUninitialized) }
         return await client.performRequest(path: "api/servers")
     }
     
     /// Returns a list of your virtual servers. Servers are returned sorted in alphabetical order.
+    ///
+    /// - Returns: A ``ServerListResult`` containing your servers.
     public func list() async throws -> ServerListResult {
         let result = await self.listResult()
         switch result {
@@ -35,6 +42,7 @@ public class Servers {
     /// Creates a new virtual server.
     ///
     ///  - Parameter options: Options used to create a new Mailosaur server.
+    ///  - Returns: A `Result` containing the newly-created ``Server`` on success, or an `Error` on failure.
     public func createResult(options: ServerCreateOptions) async -> Result<Server, Error> {
         guard let client = self.client else { return .failure(MailosaurError.clientUninitialized) }
         return await client.performRequest(path: "api/servers", method: .post, params: options)
@@ -43,6 +51,7 @@ public class Servers {
     /// Creates a new virtual server.
     ///
     ///  - Parameter options: Options used to create a new Mailosaur server.
+    ///  - Returns: The newly-created ``Server``.
     public func create(options: ServerCreateOptions) async throws -> Server {
         let result = await self.createResult(options: options)
         switch result {
@@ -56,6 +65,7 @@ public class Servers {
     /// Retrieves the detail for a single server.
     ///
     ///  - Parameter id: The unique identifier of the server.
+    ///  - Returns: A `Result` containing the ``Server`` on success, or an `Error` on failure.
     public func getResult(id: String) async -> Result<Server, Error> {
         guard let client = self.client else { return .failure(MailosaurError.clientUninitialized) }
         return await client.performRequest(path: "api/servers/\(id)")
@@ -64,6 +74,7 @@ public class Servers {
     /// Retrieves the detail for a single server.
     ///
     ///  - Parameter id: The unique identifier of the server.
+    ///  - Returns: The ``Server``.
     public func get(id: String) async throws -> Server {
         let result = await self.getResult(id: id)
         switch result {
@@ -76,8 +87,10 @@ public class Servers {
     
     /// Updates the attributes of a server.
     ///
-    ///  - Parameter id: The unique identifier of the server.
-    ///  - Parameter server: The updated server.
+    ///  - Parameters:
+    ///    - id: The unique identifier of the server.
+    ///    - server: The updated server.
+    ///  - Returns: A `Result` containing the updated ``Server`` on success, or an `Error` on failure.
     public func updateResult(id: String, server: Server) async -> Result<Server, Error> {
         guard let client = self.client else { return .failure(MailosaurError.clientUninitialized) }
         return await client.performRequest(path: "api/servers/\(id)", method: .put, params: server)
@@ -85,8 +98,10 @@ public class Servers {
     
     /// Updates the attributes of a server.
     ///
-    ///  - Parameter id: The unique identifier of the server.
-    ///  - Parameter server: The updated server.
+    ///  - Parameters:
+    ///    - id: The unique identifier of the server.
+    ///    - server: The updated server.
+    ///  - Returns: The updated ``Server``.
     public func update(id: String, server: Server) async throws -> Server {
         let result = await self.updateResult(id: id, server: server)
         switch result {
@@ -100,6 +115,7 @@ public class Servers {
     /// Permanently delete a server. This will also delete all messages, associated attachments, etc. within the server. This operation cannot be undone.
     ///
     ///  - Parameter id: The unique identifier of the server.
+    ///  - Returns: A `Result` that is successful once the server has been deleted, or an `Error` on failure.
     public func deleteResult(id: String) async -> Result<(), Error> {
         guard let client = self.client else { return .failure(MailosaurError.clientUninitialized) }
         let result: Result<MailosaurClient.None, Error> = await client.performRequest(path: "api/servers/\(id)", method: .delete)
@@ -109,6 +125,7 @@ public class Servers {
     /// Permanently delete a server. This will also delete all messages, associated attachments, etc. within the server. This operation cannot be undone.
     ///
     ///  - Parameter id: The unique identifier of the server.
+    ///  - Returns: Once the server has been deleted.
     public func delete(id: String) async throws {
         let result = await self.deleteResult(id: id)
         switch result {
@@ -122,6 +139,7 @@ public class Servers {
     /// Generates a random email address by appending a random string in front of the server's domain name.
     ///
     ///  - Parameter serverId: The identifier of the server.
+    ///  - Returns: A random email address ending in the server's domain.
     public static func generateEmailAddress(serverId: String) -> String {
         let host = ProcessInfo.processInfo.environment["MAILOSAUR_SMTP_HOST"] ?? "mailosaur.net"
         let uuid = UUID().uuidString.lowercased()
