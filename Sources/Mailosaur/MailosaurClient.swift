@@ -91,7 +91,7 @@ public class MailosaurClient {
     public lazy var messages: Messages = {
         Messages(client: self)
     } ()
-    /// Operations for creating and managing your Mailosaur servers (virtual inboxes).
+    /// Operations for creating and managing your Mailosaur inboxes (servers).
     public lazy var servers: Servers = {
         Servers(client: self)
     } ()

@@ -8,7 +8,7 @@
 import Foundation
 
 /// Operations for finding, retrieving, creating, forwarding, replying to, and deleting the
-/// email and SMS messages received by your Mailosaur servers. Accessed via `client.messages`.
+/// email and SMS messages received by your Mailosaur inboxes (servers). Accessed via `client.messages`.
 public class Messages {
     // Must be weak to prevent a retain cycle
     private weak var client: MailosaurClient?
@@ -21,11 +21,11 @@ public class Messages {
     ///
     ///  - Note: This is the most efficient method of looking up a message, therefore we recommend using it wherever possible.
     ///  - Parameters:
-    ///    - server: The unique identifier of the containing server.
+    ///    - server: The unique identifier of the containing inbox (server).
     ///    - criteria: The criteria with which to find messages during a search.
     ///    - timeout: The maximum time, in milliseconds, to wait for a matching message to arrive.
     ///    - receivedAfter: Limits results to messages received after this date. Defaults to one hour ago.
-    ///  - Returns: A `Result` containing the first ``Message`` matching the criteria on success, or an `Error` on failure (for example a `MailosaurError.generic` for an invalid server ID, or when the search times out).
+    ///  - Returns: A `Result` containing the first ``Message`` matching the criteria on success, or an `Error` on failure (for example a `MailosaurError.generic` for an invalid inbox (server) ID, or when the search times out).
     public func getResult(server: String, criteria: MessageSearchCriteria? = nil, timeout: Int = 1000, receivedAfter: Date? = nil) async -> Result<Message, Error> {
         let receivedAfterFinal = receivedAfter ?? Calendar.current.date(byAdding: .hour, value: -1, to: Date.now)
         let criteriaFinal = criteria ?? MessageSearchCriteria()
@@ -45,12 +45,12 @@ public class Messages {
     ///
     ///  - Note: This is the most efficient method of looking up a message, therefore we recommend using it wherever possible.
     ///  - Parameters:
-    ///    - server: The unique identifier of the containing server.
+    ///    - server: The unique identifier of the containing inbox (server).
     ///    - criteria: The criteria with which to find messages during a search.
     ///    - timeout: The maximum time, in milliseconds, to wait for a matching message to arrive.
     ///    - receivedAfter: Limits results to messages received after this date. Defaults to one hour ago.
     ///  - Returns: The first ``Message`` matching the criteria.
-    ///  - Throws: `MailosaurError.generic` if an invalid server ID is supplied, or if no matching message arrives before the timeout elapses (mirrors the API `search_timeout` condition).
+    ///  - Throws: `MailosaurError.generic` if an invalid inbox (server) ID is supplied, or if no matching message arrives before the timeout elapses (mirrors the API `search_timeout` condition).
     public func get(server: String, criteria: MessageSearchCriteria? = nil, timeout: Int = 1000, receivedAfter: Date? = nil) async throws -> Message {
         let result = await self.getResult(server: server, criteria: criteria, timeout: timeout, receivedAfter: receivedAfter)
         switch result {
@@ -113,7 +113,7 @@ public class Messages {
     /// Returns a list of your messages in summary form. The summaries are returned sorted by received date, with the most recently-received messages appearing first.
     ///
     /// - Parameters:
-    ///   - server: The unique identifier of the required server.
+    ///   - server: The unique identifier of the required inbox (server).
     ///   - page: Used in conjunction with `itemsPerPage` to support pagination.
     ///   - itemsPerPage: A limit on the number of results to be returned per page.
     ///   - receivedAfter: Limits results to messages received after this date.
@@ -135,7 +135,7 @@ public class Messages {
     /// Returns a list of your messages in summary form. The summaries are returned sorted by received date, with the most recently-received messages appearing first.
     ///
     /// - Parameters:
-    ///   - server: The unique identifier of the required server.
+    ///   - server: The unique identifier of the required inbox (server).
     ///   - page: Used in conjunction with `itemsPerPage` to support pagination.
     ///   - itemsPerPage: A limit on the number of results to be returned per page.
     ///   - receivedAfter: Limits results to messages received after this date.
@@ -151,10 +151,10 @@ public class Messages {
         }
     }
     
-    /// Permanently delete all messages within a server. This operation cannot be undone.
+    /// Permanently delete all messages within an inbox (server). This operation cannot be undone.
     ///
-    /// - Parameter server: The unique identifier of the required server.
-    /// - Returns: A `Result` that is successful once all messages within the server have been deleted, or an `Error` on failure.
+    /// - Parameter server: The unique identifier of the required inbox (server).
+    /// - Returns: A `Result` that is successful once all messages within the inbox (server) have been deleted, or an `Error` on failure.
     public func deleteAllResult(server: String) async -> Result<(), Error> {
         guard let client = self.client else { return .failure(MailosaurError.clientUninitialized) }
         var queryItems = [URLQueryItem] ()
@@ -164,10 +164,10 @@ public class Messages {
         return result.map { _ in () }
     }
     
-    /// Permanently delete all messages within a server. This operation cannot be undone.
+    /// Permanently delete all messages within an inbox (server). This operation cannot be undone.
     ///
-    /// - Parameter server: The unique identifier of the required server.
-    /// - Returns: Once all messages within the server have been deleted.
+    /// - Parameter server: The unique identifier of the required inbox (server).
+    /// - Returns: Once all messages within the inbox (server) have been deleted.
     public func deleteAll(server: String) async throws {
         let result = await self.deleteAllResult(server: server)
         switch result {
@@ -182,7 +182,7 @@ public class Messages {
     /// The messages are returned sorted by received date, with the most recently-received messages appearing first.
     ///
     ///  - Parameters:
-    ///    - server: The unique identifier of the server to search.
+    ///    - server: The unique identifier of the inbox (server) to search.
     ///    - criteria: The criteria with which to find messages during a search.
     ///    - page: Used in conjunction with `itemsPerPage` to support pagination.
     ///    - itemsPerPage: A limit on the number of results to be returned per page.
@@ -237,7 +237,7 @@ public class Messages {
     /// The messages are returned sorted by received date, with the most recently-received messages appearing first.
     ///
     ///  - Parameters:
-    ///    - server: The unique identifier of the server to search.
+    ///    - server: The unique identifier of the inbox (server) to search.
     ///    - criteria: The criteria with which to find messages during a search.
     ///    - page: Used in conjunction with `itemsPerPage` to support pagination.
     ///    - itemsPerPage: A limit on the number of results to be returned per page.
@@ -261,7 +261,7 @@ public class Messages {
     /// in scenarios where you want an email to trigger a workflow in your product.
     ///
     ///  - Parameters:
-    ///    - server: The unique identifier of the required server.
+    ///    - server: The unique identifier of the required inbox (server).
     ///    - messageCreateOptions: Options to use when creating a new message.
     ///  - Returns: A `Result` containing the newly-created ``Message`` on success, or an `Error` on failure.
     public func createResult(server: String, messageCreateOptions: MessageCreateOptions) async -> Result<Message, Error> {
@@ -276,7 +276,7 @@ public class Messages {
     /// in scenarios where you want an email to trigger a workflow in your product.
     ///
     ///  - Parameters:
-    ///    - server: The unique identifier of the required server.
+    ///    - server: The unique identifier of the required inbox (server).
     ///    - messageCreateOptions: Options to use when creating a new message.
     ///  - Returns: The newly-created ``Message``.
     public func create(server: String, messageCreateOptions: MessageCreateOptions) async throws -> Message {
