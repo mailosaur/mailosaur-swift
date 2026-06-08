@@ -31,7 +31,7 @@ public struct Message: Decodable {
     /// Gets or sets an array of attachment metadata for any attached files
     public let attachments: [MessageAttachment]
     public let metadata: MessageMetadata
-    /// Gets or sets identifier for the server in which the message is located
+    /// Gets or sets identifier for the inbox (server) in which the message is located
     public let server: String
 }
 
@@ -129,7 +129,7 @@ public struct MessageSummary: Decodable {
     public let subject: String
     /// Summary snippet taken from message body
     public let summary: String
-    /// Gets or sets identifier for the server in which the message is lcoated
+    /// Gets or sets identifier for the inbox (server) in which the message is lcoated
     public let server: String
     /// Number of message attachments
     public let attachments: Int?

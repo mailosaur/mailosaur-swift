@@ -5,17 +5,20 @@
 //  Created by Mailosaur on 19.01.2023.
 //
 
+/// Operations for analyzing the content and deliverability of an email, including SpamAssassin
+/// scoring and per-provider deliverability reports. Accessed via `client.analysis`.
 public class Analysis {
     // Must be weak to prevent a retain cycle
     weak var client: MailosaurClient?
-    
+
     public init(client: MailosaurClient) {
         self.client = client
     }
-    
+
     /// Perform a spam analysis of an email.
     ///
     /// - Parameter email: The identifier of the message to be analyzed.
+    /// - Returns: A `Result` containing a ``SpamAnalysisResult`` with the spam score and filter results on success, or an `Error` on failure.
     public func spamResult(email: String) async -> Result<SpamAnalysisResult, Error> {
         guard let client = self.client else { return .failure(MailosaurError.clientUninitialized) }
         return await client.performRequest(path: "api/analysis/spam/\(email)")
@@ -24,6 +27,7 @@ public class Analysis {
     /// Perform a spam analysis of an email.
     ///
     /// - Parameter email: The identifier of the message to be analyzed.
+    /// - Returns: A ``SpamAnalysisResult`` containing the spam score and filter results.
     public func spam(email: String) async throws -> SpamAnalysisResult {
         let result = await self.spamResult(email: email)
         switch result {
@@ -37,6 +41,7 @@ public class Analysis {
     /// Perform a deliverability report of an email.
     ///
     /// - Parameter email: The identifier of the message to be analyzed.
+    /// - Returns: A `Result` containing a ``DeliverabilityReport`` for the email on success, or an `Error` on failure.
     public func deliverabilityResult(email: String) async -> Result<DeliverabilityReport, Error> {
         guard let client = self.client else { return .failure(MailosaurError.clientUninitialized) }
         return await client.performRequest(path: "api/analysis/deliverability/\(email)")
@@ -45,6 +50,7 @@ public class Analysis {
     /// Perform a deliverability report of an email.
     ///
     /// - Parameter email: The identifier of the message to be analyzed.
+    /// - Returns: A ``DeliverabilityReport`` for the email.
     public func deliverability(email: String) async throws -> DeliverabilityReport {
         let result = await self.deliverabilityResult(email: email)
         switch result {

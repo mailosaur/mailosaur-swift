@@ -6,26 +6,26 @@
 //
 
 public struct Server: Codable {
-    /// Gets or sets unique identifier for the server. Used as username for
+    /// Gets or sets unique identifier for the inbox (server). Used as username for
     /// SMTP/POP3 authentication.
     public let id: String
-    /// Gets or sets a name used to identify the server.
+    /// Gets or sets a name used to identify the inbox (server).
     public let name: String
     /// Gets or sets users (excluding administrators) who have access to
-    /// the server.
+    /// the inbox (server) when access is restricted.
     public let users: [String]
-    /// Gets or sets the number of messages currently in the server.
+    /// Gets or sets the number of messages currently in the inbox (server).
     public let messages: Int
 }
 
 public struct ServerListResult: Decodable {
-    /// Gets or sets the individual servers forming the result. Servers are
+    /// Gets or sets the individual inboxes (servers) forming the result. Inboxes (servers) are
     /// returned sorted by creation date, with the most recently-created
-    /// server appearing first.
+    /// inbox (server) appearing first.
     public let items: [Server]
 }
 
 public struct ServerCreateOptions: Encodable {
-    /// Gets or sets a name used to identify the server.
+    /// Gets or sets a name used to identify the inbox (server).
     public let name: String
 }

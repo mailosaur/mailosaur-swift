@@ -7,6 +7,8 @@
 
 import Foundation
 
+/// Operations for downloading the raw content associated with a message — file attachments,
+/// the full EML source of an email, and rendered email previews. Accessed via `client.files`.
 public class Files {
     // Must be weak to prevent a retain cycle
     private weak var client: MailosaurClient?
@@ -18,6 +20,7 @@ public class Files {
     /// Downloads a single attachment.
     ///
     /// - Parameter id: The identifier for the required attachment.
+    /// - Returns: A `Result` containing the attachment's binary content as `Data` on success, or an `Error` on failure.
     public func getAttachmentResult(id: String) async -> Result<Data, Error> {
         guard let client = self.client else { return .failure(MailosaurError.clientUninitialized) }
         return await client.performRequest(path: "api/files/attachments/\(id)", requestType: .data)
@@ -26,6 +29,7 @@ public class Files {
     /// Downloads a single attachment.
     ///
     /// - Parameter id: The identifier for the required attachment.
+    /// - Returns: The attachment's binary content as `Data`.
     public func getAttachment(id: String) async throws -> Data {
         let result = await self.getAttachmentResult(id: id)
         switch result {
@@ -36,17 +40,19 @@ public class Files {
         }
     }
     
-    /// ownloads an EML file representing the specified email.
+    /// Downloads an EML file representing the specified email.
     ///
     /// - Parameter id: The identifier for the required message.
+    /// - Returns: A `Result` containing the raw EML content of the email as `Data` on success, or an `Error` on failure.
     public func getEmailResult(id: String) async -> Result<Data, Error> {
         guard let client = self.client else { return .failure(MailosaurError.clientUninitialized) }
         return await client.performRequest(path: "api/files/email/\(id)", requestType: .data)
     }
     
-    /// ownloads an EML file representing the specified email.
+    /// Downloads an EML file representing the specified email.
     ///
     /// - Parameter id: The identifier for the required message.
+    /// - Returns: The raw EML content of the email as `Data`.
     public func getEmail(id: String) async throws -> Data {
         let result = await self.getEmailResult(id: id)
         switch result {
@@ -60,7 +66,8 @@ public class Files {
     /// Downloads a screenshot of your email rendered in a real email client. Simply supply
     /// the unique identifier for the required preview.
     ///
-    /// - Parameter id: The identifier of the preview to be downloaded.
+    /// - Parameter id: The identifier of the email preview to be downloaded.
+    /// - Returns: A `Result` containing the preview screenshot image as `Data` on success, or an `Error` on failure (including a `MailosaurError.generic` if the preview is not generated within the time limit).
     public func getPreviewResult(id: String) async -> Result<Data, Error> {
         guard let client = self.client else { return .failure(MailosaurError.clientUninitialized) }
         
@@ -113,7 +120,9 @@ public class Files {
     /// Downloads a screenshot of your email rendered in a real email client. Simply supply
     /// the unique identifier for the required preview.
     ///
-    /// - Parameter id: The identifier of the preview to be downloaded.
+    /// - Parameter id: The identifier of the email preview to be downloaded.
+    /// - Returns: The preview screenshot image as `Data`.
+    /// - Throws: `MailosaurError.generic` if the preview is not generated within the time limit (mirrors the API `preview_timeout` condition).
     public func getPreview(id: String) async throws -> Data {
         let result = await self.getPreviewResult(id: id)
         switch result {
