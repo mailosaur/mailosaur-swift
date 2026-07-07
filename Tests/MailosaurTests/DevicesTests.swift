@@ -11,8 +11,7 @@ import Testing
 
 @Suite("Device Management Tests", .serialized)
 struct DevicesTests {
-    private static let apiBaseUrl = ProcessInfo.processInfo.environment["MAILOSAUR_BASE_URL"]!
-    private static let client = try! MailosaurClient(baseUrl: URL(string: apiBaseUrl)!)
+    private static let client = TestEnvironment.makeClient()
 
     @Test("Create, retrieve, and delete device")
     func crud() async throws {

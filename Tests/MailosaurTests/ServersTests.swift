@@ -11,8 +11,7 @@ import Testing
 
 @Suite("Server Management Tests", .serialized)
 struct ServersTests {
-    private static let apiBaseUrl = ProcessInfo.processInfo.environment["MAILOSAUR_BASE_URL"]!
-    private static let client = try! MailosaurClient(baseUrl: URL(string: apiBaseUrl)!)
+    private static let client = TestEnvironment.makeClient()
     
     @Test("List servers")
     func list() async throws {
