@@ -16,12 +16,12 @@ class Mailer {
     private static let sHtml: String! = try? String(contentsOf: Bundle.module.url(forResource: "testEmail", withExtension: "html")!)
     private static let sText: String! = try? String(contentsOf: Bundle.module.url(forResource: "testEmail", withExtension: "txt")!)
     
-    private static let server = TestEnvironment.server
-    private static let sVerifiedDomain = TestEnvironment.verifiedDomain ?? "\(server).mailosaur.net"
-
+    private static let server = ProcessInfo.processInfo.environment["MAILOSAUR_SERVER"]!
+    private static let sVerifiedDomain = ProcessInfo.processInfo.environment["MAILOSAUR_VERIFIED_DOMAIN"] ?? "\(server).mailosaur.net"
+    
     public func sendEmail(client: MailosaurClient, server: String, sendToAddress: String? = nil) async throws {
-        let host = TestEnvironment["MAILOSAUR_SMTP_HOST"] ?? "mailosaur.net"
-        let port = TestEnvironment["MAILOSAUR_SMTP_PORT"] ?? "25"
+        let host = ProcessInfo.processInfo.environment["MAILOSAUR_SMTP_HOST"] ?? "mailosaur.net"
+        let port = ProcessInfo.processInfo.environment["MAILOSAUR_SMTP_PORT"] ?? "25"
         
         // let smtp = SMTPClient(url: "smtp://\(host):\(port)", requiresTLSUpgrade: true)
         let smtpConfig = Configuration(server: .init(hostname: host, 

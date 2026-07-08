@@ -10,10 +10,9 @@ import Testing
 @testable import Mailosaur
 
 actor EmailsTestsSetup {
-    static let apiBaseUrl = TestEnvironment.apiBaseUrl
-    static let server = TestEnvironment.server
+    static let server = ProcessInfo.processInfo.environment["MAILOSAUR_SERVER"]!
     static let client = TestEnvironment.makeClient()
-    static let verifiedDomain = TestEnvironment.verifiedDomain
+    static let verifiedDomain =  ProcessInfo.processInfo.environment["MAILOSAUR_VERIFIED_DOMAIN"]
     private static var _emails: [MessageSummary]?
     private static var initializationTask: Task<[MessageSummary], Error>?
     
@@ -69,7 +68,7 @@ struct EmailsTests {
     func getEmail() async throws {
         try await EmailsTestsSetup.ensureInitialized()
         
-        let host = TestEnvironment["MAILOSAUR_SMTP_HOST"] ?? "mailosaur.net"
+        let host = ProcessInfo.processInfo.environment["MAILOSAUR_SMTP_HOST"] ?? "mailosaur.net"
         let testEmailAddress = "wait_for_test@\(EmailsTestsSetup.server).\(host)"
         
         try await Mailer.shared.sendEmail(client: EmailsTestsSetup.client, server: EmailsTestsSetup.server, sendToAddress: testEmailAddress)

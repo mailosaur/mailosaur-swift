@@ -10,8 +10,7 @@ import Testing
 @testable import Mailosaur
 
 actor FilesTestsSetup {
-    static let apiBaseUrl = TestEnvironment.apiBaseUrl
-    static let server = TestEnvironment.server
+    static let server = ProcessInfo.processInfo.environment["MAILOSAUR_SERVER"]!
     static let client = TestEnvironment.makeClient()
     private static var _email: Message?
     private static var initializationTask: Task<Message, Error>?
@@ -26,7 +25,7 @@ actor FilesTestsSetup {
         }
         
         let task = Task<Message, Error> {
-            let host = TestEnvironment["MAILOSAUR_SMTP_HOST"] ?? "mailosaur.net"
+            let host = ProcessInfo.processInfo.environment["MAILOSAUR_SMTP_HOST"]  ?? "mailosaur.net"
             let testEmailAddress = "files_test@\(server).\(host)"
 
             try await Mailer.shared.sendEmail(client: client, server: server, sendToAddress: testEmailAddress)

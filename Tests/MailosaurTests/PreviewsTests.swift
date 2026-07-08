@@ -10,8 +10,7 @@ import Testing
 @testable import Mailosaur
 
 actor PreviewsTestsSetup {
-    static let apiBaseUrl = TestEnvironment.apiBaseUrl
-    static let server = TestEnvironment.server
+    static let server = ProcessInfo.processInfo.environment["MAILOSAUR_SERVER"]!
     static let client = TestEnvironment.makeClient()
 }
 
@@ -27,7 +26,7 @@ struct PreviewsTests {
     @Test("Generate email previews")
     func generatePreviews() async throws {
         let randomString = Mailer.shared.getRandomString(length: 10)
-        let host = TestEnvironment["MAILOSAUR_SMTP_HOST"] ?? "mailosaur.net"
+        let host = ProcessInfo.processInfo.environment["MAILOSAUR_SMTP_HOST"]  ?? "mailosaur.net"
         let testEmailAddress = "\(randomString)@\(PreviewsTestsSetup.server).\(host)"
 
         try await Mailer.shared.sendEmail(client: PreviewsTestsSetup.client, server: PreviewsTestsSetup.server, sendToAddress: testEmailAddress)
