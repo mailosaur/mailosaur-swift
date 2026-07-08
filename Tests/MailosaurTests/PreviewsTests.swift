@@ -10,9 +10,8 @@ import Testing
 @testable import Mailosaur
 
 actor PreviewsTestsSetup {
-    static let apiBaseUrl = ProcessInfo.processInfo.environment["MAILOSAUR_BASE_URL"]!
     static let server = ProcessInfo.processInfo.environment["MAILOSAUR_SERVER"]!
-    static let client = try! MailosaurClient(baseUrl: URL(string: apiBaseUrl)!)
+    static let client = TestEnvironment.makeClient()
 }
 
 @Suite("Email Preview Tests", .serialized)

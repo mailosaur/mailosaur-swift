@@ -10,9 +10,8 @@ import Testing
 @testable import Mailosaur
 
 actor EmailsTestsSetup {
-    static let apiBaseUrl = ProcessInfo.processInfo.environment["MAILOSAUR_BASE_URL"]!
     static let server = ProcessInfo.processInfo.environment["MAILOSAUR_SERVER"]!
-    static let client = try! MailosaurClient(baseUrl: URL(string: apiBaseUrl)!)
+    static let client = TestEnvironment.makeClient()
     static let verifiedDomain =  ProcessInfo.processInfo.environment["MAILOSAUR_VERIFIED_DOMAIN"]
     private static var _emails: [MessageSummary]?
     private static var initializationTask: Task<[MessageSummary], Error>?

@@ -11,8 +11,7 @@ import Testing
 
 @Suite("Usage API Tests", .serialized)
 struct UsageTests {
-    private static let apiBaseUrl = ProcessInfo.processInfo.environment["MAILOSAUR_BASE_URL"]!
-    private static let client = try! MailosaurClient(baseUrl: URL(string: apiBaseUrl)!)
+    private static let client = TestEnvironment.makeClient()
     
     @Test("Retrieve usage limits")
     func limits() async throws {
